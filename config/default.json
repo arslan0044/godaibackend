@@ -1,0 +1,9 @@
+{
+  "jwtPrivateKey": "edivo__vidly__unknown_jwtPrivateKey",
+  "jwtIDPrivateKey": "edivo__forget_password__Key",
+  "spotifyClientId": "5ffb5700820b4c1483fc349f2aeeec75",
+  "spotifyClientSecret": "1a9d52595ea54104879fbe5d0bc3a204",
+  "spotifyRedirectUri": "https://godaibackend.onrender.com/api/spotify/callback",
+  "WebfrontendUrl": "https://godai-psi.vercel.app/dashboard/quick-access/music",
+  "AppfrontendUrl": "com.godai.app://oauth"
+}

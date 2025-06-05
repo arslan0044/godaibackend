@@ -1,0 +1,8 @@
+
+run npm i or yarn  to install node modules
+
+use that .env file got it from firebase. Use firebase to save images to firebase storage.
+
+After this run yarn start or npm start
+
+it'll run code to localhost:8080
