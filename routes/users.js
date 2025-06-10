@@ -20,8 +20,26 @@ const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 router.get("/me", auth, async (req, res) => {
   const userId = req.user._id;
-  const user = await User.findById(userId).select("-password");
-  res.send({ success: true, user });
+  const [user, referralUsers] = await Promise.all([
+    User.findById(userId).select("-password"),
+    User.find({ referredBy: userId })
+      .select("name username email profilePicture points premium createdAt")
+      .sort({ createdAt: -1 })
+      .limit(50), // Limit to prevent excessive data transfer
+  ]);
+
+  if (!user) {
+    return res.status(404).send({ success: false, message: "User not found" });
+  }
+  const userObj = user.toObject();
+
+  // Add referral information
+  userObj.referrals = {
+    count: referralUsers.length,
+    users: referralUsers,
+    totalPointsEarned: user.referralStats?.pointsEarnedFromReferrals || 0,
+  };
+  res.send({ success: true, user: userObj });
 });
 
 router.post("/forget-password", async (req, res) => {
