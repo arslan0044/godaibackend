@@ -37,7 +37,7 @@ const generateReferralLink = async (req, res) => {
 
     // Construct the referral link
     const baseUrl = process.env.MainDomain || "yourdomain.com";
-    const referralLink = `https://${baseUrl}/signup?ref=${user.referralCode}`;
+    const referralLink = `https://${baseUrl}/auth/signup?ref=${user.referralCode}`;
 
     res.status(200).json({
       success: true,

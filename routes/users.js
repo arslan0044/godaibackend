@@ -15,7 +15,7 @@ const passwordauth = require("../middleware/passwordauth");
 const { generateCode } = require("../controllers/generateCode");
 const router = express.Router();
 const ActivityPoints = require("../models/activityPoints");
-const  PointsHistory  = require("../models/PointsHistory");
+const PointsHistory = require("../models/PointsHistory");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 router.get("/me", auth, async (req, res) => {
@@ -123,8 +123,10 @@ router.post("/send-code", async (req, res) => {
   try {
     const existingUser = await User.findOne({ email: lowerCaseEmail });
 
-    if (existingUser) {
-      return res.status(409).json({ error: "Email already registered" });
+    if (!existingUser) {
+      return res
+        .status(409)
+        .json({ error: `This email ${email} is not registered` });
     }
 
     const verificationCode = generateCode();
@@ -428,6 +430,31 @@ router.delete("/", auth, async (req, res) => {
     });
 
   res.send({ success: true, message: "User deleted successfully", user });
+});
+
+router.put("/premium", auth, async (req, res) => {
+  const { premium } = req.body;
+
+  if (typeof premium !== "boolean") {
+    return res.status(400).send({
+      success: false,
+      message: "Premium status must be a boolean value.",
+    });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { premium },
+    { new: true }
+  );
+
+  if (!user)
+    return res.status(404).send({
+      success: false,
+      message: "The User with the given ID was not found.",
+    });
+
+  res.send({ success: true, message: "User premium status updated", user });
 });
 
 module.exports = router;

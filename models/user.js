@@ -128,6 +128,11 @@ const userSchema = new mongoose.Schema({
     enum: ["bronze", "silver", "gold", "platinum"],
     default: "bronze",
   },
+  premium: {
+    type: Boolean,
+    require: false,
+    default: false,
+  },
   lastActivity: Date,
   notificationPreferences: {
     referralAlerts: { type: Boolean, default: true },
