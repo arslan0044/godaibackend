@@ -8,6 +8,7 @@ const blogRoute = require("../routes/blogRoute");
 const uploadImages = require("../routes/uploadImages");
 const spotify = require("../routes/spotify");
 const invite = require("../routes/referralRoutes");
+const points = require("../routes/PointsTreansactionRoute");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -17,6 +18,7 @@ module.exports = function (app) {
   app.use("/api/image", uploadImages);
   app.use("/api/spotify", spotify);
   app.use("/api/invite", invite);
+  app.use("/api/points", points);
   // app.use('/api/notification',authMiddleware, notificationRoute);
   app.use(error);
 };

@@ -28,7 +28,12 @@ const userSchema = new mongoose.Schema({
     minlength: 0,
     maxlength: 1024,
   },
-  profilePicture: String,
+  profilePicture: {
+    type: String,
+    required: false,
+    default:
+      "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop",
+  },
   code: {
     type: Number,
     minlength: 0,
@@ -113,6 +118,11 @@ const userSchema = new mongoose.Schema({
   pointsEarned: {
     type: Number,
     default: 0,
+  },
+  pointsBalance: {
+    type: Number,
+    default: 0, // IMPORTANT: New users will start with 0 points
+    min: 0, // Optional: Prevent negative balances
   },
   pointsRedeemed: {
     type: Number,

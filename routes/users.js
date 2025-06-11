@@ -15,7 +15,7 @@ const passwordauth = require("../middleware/passwordauth");
 const { generateCode } = require("../controllers/generateCode");
 const router = express.Router();
 const ActivityPoints = require("../models/activityPoints");
-const PointsHistory = require("../models/PointsHistory");
+const PointsHistory = require("../models/pointsHistory");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 router.get("/me", auth, async (req, res) => {
@@ -275,6 +275,7 @@ router.post("/signup", async (req, res) => {
         await User.findByIdAndUpdate(referrer._id, {
           $inc: {
             points: referralConfig.points,
+            pointsBalance: referralConfig.points,
             pointsEarned: referralConfig.points,
             referralCount: 1,
             "referralStats.totalReferrals": 1,

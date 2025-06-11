@@ -11,16 +11,23 @@ const pointsHistorySchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
-        "referral_join",
-        "facebook_post",
-        "instagram_post",
-        "twitter_post",
-        "linkedin_post",
-        "whatsapp_post",
-        "tiktok_post",
-        "youtube_post",
-        "telegram_post",
-      ],
+      'social_share',
+      'referral_signup',
+      'referral_activity',
+      'daily_login',
+      'game_completion',
+      'content_creation',
+      'profile_completion',
+      'social_verification',
+      'streak_bonus',
+      'tier_upgrade',
+      'purchase',          // New - points purchased
+      'transfer_in',       // New - received from another user
+      'transfer_out',      // New - sent to another user
+      'admin_adjustment',  // New - manual adjustment by admin
+      'reward_redemption',
+      'expiration'
+    ],
     },
     points: {
       type: Number,
