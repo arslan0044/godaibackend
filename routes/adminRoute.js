@@ -167,11 +167,12 @@ router.get("/", async (req, res) => {
     ]);
 
     const totalearning = premiumUsers * 120;
-
+    const freeUsers = totalUsers - premiumUsers;
     return res.status(200).json({
       total_users: totalUsers,
       premium_users: premiumUsers,
       totalearning,
+      free_users: freeUsers,
     });
   } catch (error) {
     console.error("Stats error:", error);
