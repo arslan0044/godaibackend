@@ -6,14 +6,15 @@ const activityPointsSchema = new mongoose.Schema({
     unique: true,
     enum: [
       "referral_join",
-      "facebook_post",
-      "instagram_post",
-      "twitter_post",
-      "linkedin_post",
-      "whatsapp_post",
-      "tiktok_post",
-      "youtube_post",
-      "telegram_post",
+      "facebook_join",
+      "instagram_join",
+      "twitter_join",
+      "linkedin_join",
+      "tiktok_join",
+      "youtube_join",
+      "whatsapp_join",
+      "telegram_join",
+      "discord_join"
     ],
   },
   points: {

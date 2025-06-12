@@ -6,8 +6,8 @@ const {
   admingenerateIdToken,
 } = require("../models/user");
 const express = require("express");
-const { generateRandomString } = require("../controllers/generateCode");
 const router = express.Router();
+const { generateRandomString } = require("../controllers/generateCode");
 
 function uid() {
   var result = "";

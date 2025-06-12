@@ -1,7 +1,10 @@
 const PointsTransaction = require("../models/pointsTransaction");
-const {User} = require("../models/user");
+const { User } = require("../models/user");
 const mongoose = require("mongoose");
 require("dotenv").config();
+const ActivityPoints = require("../models/activityPoints");
+const PointsHistory = require("../models/pointsHistory");
+const CommunityJoin = require("../models/communityJoin");
 const SYSTEM_ACCOUNT_ID = process.env.SYSTEM_ACCOUNT_ID || "New test";
 /**
  * Transfers points from one user to another.
@@ -15,12 +18,10 @@ const transferPoints = async (req, res, next) => {
   const senderId = req.user._id; // Assuming req.user is populated by an authentication middleware
 
   if (!senderId) {
-    return res
-      .status(401)
-      .json({
-        success: false,
-        message: "Authentication required. Sender ID not found.",
-      });
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required. Sender ID not found.",
+    });
   }
 
   if (!recipientId) {
@@ -46,22 +47,18 @@ const transferPoints = async (req, res, next) => {
     transferFee < 0 ||
     !Number.isInteger(transferFee)
   ) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Transfer fee must be a non-negative integer.",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Transfer fee must be a non-negative integer.",
+    });
   }
 
   if (transferFee >= points) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message:
-          "Transfer fee cannot be equal to or exceed the points being transferred.",
-      });
+    return res.status(400).json({
+      success: false,
+      message:
+        "Transfer fee cannot be equal to or exceed the points being transferred.",
+    });
   }
 
   try {
@@ -104,30 +101,205 @@ const transferPoints = async (req, res, next) => {
       return res.status(400).json({ success: false, message: error.message });
     }
     if (error.message === "User not found") {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Sender or recipient user not found.",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Sender or recipient user not found.",
+      });
     }
     if (
       error.message === "System account not configured" &&
       !SYSTEM_ACCOUNT_ID
     ) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message:
-            "System account for fees is not configured. Please contact support.",
-        });
+      return res.status(500).json({
+        success: false,
+        message:
+          "System account for fees is not configured. Please contact support.",
+      });
     }
     console.error("Error during points transfer:", error);
     next(error); // Pass the error to the Express error handling middleware
   }
 };
 
+// controllers/communityController.js
+// const User = require('../models/user');
+
+const joinCommunity = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { communityType, profileUrl } = req.body;
+    const userId = req.user._id;
+
+    // 1. Validate input
+    if (!communityType || !profileUrl) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: "Community type and profile URL are required",
+      });
+    }
+
+    // 2. Check if community type is valid
+    const validPlatforms = [
+      "facebook",
+      "instagram",
+      "twitter",
+      "linkedin",
+      "tiktok",
+      "youtube",
+    ];
+    const normalizedType = communityType.toLowerCase();
+
+    if (!validPlatforms.includes(normalizedType)) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: "Invalid community type",
+      });
+    }
+
+    // 3. Check for existing join using the new model (atomic check)
+    const existingJoin = await CommunityJoin.findOne({
+      user: userId,
+      communityType: normalizedType,
+    }).session(session);
+
+    if (existingJoin) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: `You've already joined our ${normalizedType} community`,
+      });
+    }
+
+    // 4. Get points configuration
+    const activityConfig = await ActivityPoints.findOne({
+      activityType: `${normalizedType}_join`,
+    }).session(session);
+
+    if (!activityConfig) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: "Points configuration not found for this community",
+      });
+    }
+
+    // 5. Update user's social media account and points
+    const updateConditions = {
+      _id: userId,
+      $or: [
+        { "socialMediaAccounts.platform": { $ne: normalizedType } },
+        {
+          "socialMediaAccounts.platform": normalizedType,
+          "socialMediaAccounts.isJoined": { $ne: true },
+        },
+      ],
+    };
+
+    const updateOperation = {
+      $set: {
+        "socialMediaAccounts.$[elem].isJoined": true,
+        "socialMediaAccounts.$[elem].profileUrl": profileUrl,
+        "socialMediaAccounts.$[elem].isVerified": true,
+      },
+      $inc: {
+        points: activityConfig.points,
+        pointsBalance: activityConfig.points,
+        pointsEarned: activityConfig.points,
+      },
+    };
+
+    const arrayFilters = [{ "elem.platform": normalizedType }];
+
+    const updatedUser = await User.findOneAndUpdate(
+      updateConditions,
+      updateOperation,
+      {
+        arrayFilters,
+        new: true,
+        session,
+        upsert: false, // Important for atomic operation
+      }
+    );
+
+    // If no matching document was found to update
+    if (!updatedUser) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: `You've already joined our ${normalizedType} community`,
+      });
+    }
+
+    // 6. Create community join record
+    await CommunityJoin.create(
+      [
+        {
+          user: userId,
+          communityType: normalizedType,
+          profileUrl: profileUrl,
+          pointsEarned: activityConfig.points,
+        },
+      ],
+      { session }
+    );
+
+    // 7. Create points history record
+    await PointsHistory.create(
+      [
+        {
+          userId: userId,
+          activityType: `${normalizedType}_join`,
+          points: activityConfig.points,
+          reference: {
+            profileUrl: profileUrl,
+            type: "community_join",
+          },
+        },
+      ],
+      { session }
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully joined ${normalizedType} community`,
+      pointsEarned: activityConfig.points,
+      totalPoints: updatedUser.points,
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error in community-join:", error);
+
+    if (error.code === 11000) {
+      // Duplicate key error
+      return res.status(400).json({
+        success: false,
+        message: `You've already joined this community`,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
 module.exports = {
   transferPoints,
+  joinCommunity,
 };

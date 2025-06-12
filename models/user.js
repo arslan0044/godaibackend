@@ -95,6 +95,9 @@ const userSchema = new mongoose.Schema({
           "linkedin",
           "tiktok",
           "youtube",
+          "whatsapp",
+          "telegram",
+          "discord",
         ],
       },
       accountId: String,
@@ -110,7 +113,19 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  communityJoin: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "CommunityJoin",
+  },
+  pointsHistory: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PointsHistory",
+  },
   referralCount: {
+    type: Number,
+    default: 0,
+  },
+  token: {
     type: Number,
     default: 0,
   },
