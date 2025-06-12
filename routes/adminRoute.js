@@ -3,7 +3,7 @@ const { User } = require("../models/user");
 const router = express.Router();
 
 /**
- * @route GET /api/users/get-all-users
+ * @route GET /api/admin/get-all-users
  * @description Get paginated list of users with filtering and sorting
  * @access Protected (typically admin-only)
  * @param {number} [page=1] - Page number
@@ -86,7 +86,7 @@ router.get("/get-all-users", async (req, res) => {
   }
 });
 /**
- * @route GET /api/users/:id
+ * @route GET /api/admin/user/:id
  * @description Get complete details for a single user
  * @access Protected (admin or the user themselves)
  * @param {string} id - User ID
