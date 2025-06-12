@@ -159,4 +159,26 @@ router.get("/user/:id", async (req, res) => {
     });
   }
 });
+router.get("/", async (req, res) => {
+  try {
+    const [totalUsers, premiumUsers] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ premium: true }),
+    ]);
+
+    const totalearning = premiumUsers * 120;
+
+    return res.status(200).json({
+      total_users: totalUsers,
+      premium_users: premiumUsers,
+      totalearning,
+    });
+  } catch (error) {
+    console.error("Stats error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
 module.exports = router;
