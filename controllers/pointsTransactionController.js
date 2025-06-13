@@ -1,4 +1,5 @@
 const PointsTransaction = require("../models/pointsTransaction");
+const TokenTransaction = require("../models/tokenTransaction");
 const { User } = require("../models/user");
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -150,6 +151,10 @@ const joinCommunity = async (req, res) => {
       "linkedin",
       "tiktok",
       "youtube",
+      "whatsapp",
+      "telegram",
+      "webxv",
+      "discord",
     ];
     const normalizedType = communityType.toLowerCase();
 
@@ -299,7 +304,156 @@ const joinCommunity = async (req, res) => {
     });
   }
 };
+
+const transferTokens = async (req, res, next) => {
+  const { recipientId, tokens, message, memo, transferFee = 0, gasFee = 0 } = req.body;
+  const senderId = req.user._id;
+
+  // Input validation
+  if (!senderId) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required. Sender ID not found.",
+    });
+  }
+
+  if (!recipientId) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Recipient ID is required." 
+    });
+  }
+
+  if (senderId.toString() === recipientId.toString()) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Cannot transfer tokens to yourself." 
+    });
+  }
+
+  if (typeof tokens !== "number" || isNaN(tokens) || tokens <= 0) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Tokens must be a positive number." 
+    });
+  }
+
+  if (typeof transferFee !== "number" || isNaN(transferFee) || transferFee < 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Transfer fee must be a non-negative number.",
+    });
+  }
+
+  if (typeof gasFee !== "number" || isNaN(gasFee) || gasFee < 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Gas fee must be a non-negative number.",
+    });
+  }
+
+  if (transferFee >= tokens) {
+    return res.status(400).json({
+      success: false,
+      message: "Transfer fee cannot be equal to or exceed the tokens being transferred.",
+    });
+  }
+
+  const session = await mongoose.startSession();
+  
+  try {
+    await session.withTransaction(async () => {
+      // Verify recipient exists
+      const recipientExists = await User.findById(recipientId).session(session);
+      if (!recipientExists) {
+        throw new Error("Recipient user not found");
+      }
+
+      // Verify sender exists and has sufficient balance
+      const sender = await User.findById(senderId).session(session);
+      if (!sender) {
+        throw new Error("Sender user not found");
+      }
+
+      const totalDeduction = parseFloat((tokens + gasFee).toFixed(8));
+      if (sender.tokens < totalDeduction) {
+        throw new Error(`Insufficient token balance. Need ${totalDeduction} but only have ${sender.tokens}`);
+      }
+
+      // Prepare transfer options
+      const transferOptions = {
+        message: message,
+        memo: memo,
+        gasFee: parseFloat(gasFee.toFixed(8)),
+        actorId: senderId,
+        reason: "User initiated token transfer",
+        metadata: {
+          ipAddress: req.ip,
+          platform: req.headers["user-agent"],
+          walletAddress: sender.walletAddress,
+          blockchainNetwork: process.env.BLOCKCHAIN_NETWORK || "mainnet"
+        },
+        session: session
+      };
+
+      // Execute transfer
+      const { senderTx, recipientTx, feeTx } = await TokenTransaction.createTransfer(
+        senderId,
+        recipientId,
+        parseFloat(tokens.toFixed(8)),
+        parseFloat(transferFee.toFixed(8)),
+        transferOptions
+      );
+
+      // Success response
+      res.status(200).json({
+        success: true,
+        message: "Tokens transferred successfully.",
+        data: {
+          senderTransaction: senderTx,
+          recipientTransaction: recipientTx,
+          feeTransaction: feeTx || null,
+          networkFee: parseFloat(gasFee.toFixed(8)),
+          totalDeduction: totalDeduction
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Error during token transfer:", error);
+    
+    // Handle specific errors
+    if (error.message.includes("Insufficient token balance")) {
+      return res.status(400).json({ 
+        success: false, 
+        message: error.message 
+      });
+    }
+    if (error.message.includes("user not found")) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    if (error.message === "System account not configured") {
+      return res.status(500).json({
+        success: false,
+        message: "System account for fees is not configured. Please contact support.",
+      });
+    }
+    
+    // Generic error response
+    res.status(500).json({
+      success: false,
+      message: "An unexpected error occurred during token transfer.",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  } finally {
+    await session.endSession();
+  }
+};
+
 module.exports = {
   transferPoints,
   joinCommunity,
+  transferTokens,
 };

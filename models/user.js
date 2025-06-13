@@ -128,7 +128,16 @@ const userSchema = new mongoose.Schema({
   token: {
     type: Number,
     default: 0,
+    min: 0, 
+    set: (val) => parseFloat(val.toFixed(8)), // For crypto decimal precision
   },
+  tokenTransactions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TokenTransaction",
+    },
+  ],
+  tokenWalletAddress: String,
   lastLogin: Date,
   pointsEarned: {
     type: Number,

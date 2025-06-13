@@ -159,6 +159,83 @@ router.get("/user/:id", async (req, res) => {
     });
   }
 });
+router.put("/user/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const updateData = req.body;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    } else if (user.status === "deleted") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update a deleted user",
+      });
+    } else if (user.status === "deactivated") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot update a deactivated user",
+      });
+    }
+    // Update user data
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password -__v -fcmtoken -socialMediaAccounts");
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Failed to update user",
+      });
+    }
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update user",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+router.delete("/user/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Delete the user
+    await User.findByIdAndUpdate(userId, { status: "deleted" }, { new: true });
+
+    res.json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete user",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
 router.get("/", async (req, res) => {
   try {
     const [totalUsers, premiumUsers] = await Promise.all([

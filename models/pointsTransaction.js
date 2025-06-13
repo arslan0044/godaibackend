@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 require("dotenv").config()
-// const {  } = require('../config'); // System account for fees
 const SYSTEM_ACCOUNT_ID = process.env.SYSTEM_ACCOUNT_ID || "New test"
 const pointsTransactionSchema = new mongoose.Schema({
   // Core Transaction Info
@@ -227,8 +226,7 @@ pointsTransactionSchema.statics.createTransfer = async function(
   if (fee < 0) throw new Error('Fee cannot be negative');
   if (fee >= points) throw new Error('Fee cannot exceed transfer amount');
   
-  const session = options.session || await mongoose.startSession();
-  session.startTransaction();
+  const session = options.session;
   
   try {
     // Validate sender balance
@@ -249,7 +247,7 @@ pointsTransactionSchema.statics.createTransfer = async function(
       relatedUser: recipientId,
       actionType: 'transfer_out',
       points: -points,
-      balanceAfter: senderNewBalance, // Ensure this is set
+      balanceAfter: senderNewBalance,
       transferDetails: {
         sender: senderId,
         recipient: recipientId,
@@ -267,7 +265,7 @@ pointsTransactionSchema.statics.createTransfer = async function(
       relatedUser: senderId,
       actionType: 'transfer_in',
       points: points - fee,
-      balanceAfter: recipientNewBalance, // Ensure this is set
+      balanceAfter: recipientNewBalance,
       transferDetails: {
         sender: senderId,
         recipient: recipientId,
@@ -288,7 +286,7 @@ pointsTransactionSchema.statics.createTransfer = async function(
         relatedUser: senderId,
         actionType: 'transfer_fee',
         points: fee,
-        balanceAfter: systemNewBalance, // Ensure this is set
+        balanceAfter: systemNewBalance,
         transferDetails: {
           sender: senderId,
           recipient: recipientId,
@@ -304,16 +302,11 @@ pointsTransactionSchema.statics.createTransfer = async function(
     if (feeTx) savePromises.push(feeTx.save({ session }));
     await Promise.all(savePromises);
 
-    await session.commitTransaction();
     return { senderTx, recipientTx, feeTx };
   } catch (error) {
-    await session.abortTransaction();
     throw error;
-  } finally {
-    session.endSession();
   }
 };
-
 const PointsTransaction = mongoose.model('PointsTransaction', pointsTransactionSchema);
 
 module.exports = PointsTransaction;

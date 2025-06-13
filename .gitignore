@@ -214,3 +214,5 @@ $RECYCLE.BIN/
 
 .vercel
 .DS_Store
+
+*.test.js

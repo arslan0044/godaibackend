@@ -4,6 +4,7 @@ const pointsTransaction = require("../controllers/pointsTransactionController");
 const auth = require("../middleware/auth");
 
 router.post("/transfer-points", auth, pointsTransaction.transferPoints);
+router.post("/transfer-token", auth, pointsTransaction.transferTokens);
 /**
  * @route POST /api/points/community-join
  * @description Allows users to join platform communities and earn reward points
@@ -20,7 +21,7 @@ router.post("/transfer-points", auth, pointsTransaction.transferPoints);
  * @throws {404} If points configuration not found for community
  * @throws {403} If unauthorized access attempted
  * @throws {500} If server error occurs
- * 
+ *
  * @example
  * // Successful request
  * POST /api/community-join
@@ -29,7 +30,7 @@ router.post("/transfer-points", auth, pointsTransaction.transferPoints);
  *   "communityType": "facebook",
  *   "profileUrl": "https://facebook.com/johndoe/profile"
  * }
- * 
+ *
  * @example
  * // Response
  * {
@@ -40,7 +41,6 @@ router.post("/transfer-points", auth, pointsTransaction.transferPoints);
  * }
  */
 router.post("/community-join", auth, pointsTransaction.joinCommunity);
-// router.post("/community-join", auth, pointsTransaction.joinCommunity);
 
 // exports = router;
 module.exports = router;

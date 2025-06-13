@@ -14,6 +14,7 @@ const activityPointsSchema = new mongoose.Schema({
       "youtube_join",
       "whatsapp_join",
       "telegram_join",
+      "webxv_join",
       "discord_join"
     ],
   },
