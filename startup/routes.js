@@ -11,6 +11,7 @@ const spotify = require("../routes/spotify");
 const invite = require("../routes/referralRoutes");
 const points = require("../routes/PointsTreansactionRoute");
 const admin = require("../routes/adminRoute");
+const pageRoutes = require("../routes/pagesRoute");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -22,6 +23,7 @@ module.exports = function (app) {
   app.use("/api/invite", invite);
   app.use("/api/points", points);
   app.use("/api/admin", [authMiddleware, adminAuthMiddleware], admin);
+  app.use("/api/pages", pageRoutes)
   // app.use('/api/notification',authMiddleware, notificationRoute);
   app.use(error);
 };
