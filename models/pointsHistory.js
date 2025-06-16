@@ -27,6 +27,7 @@ const pointsHistorySchema = new mongoose.Schema(
         "admin_adjustment", // New - manual adjustment by admin
         "reward_redemption",
         "expiration",
+        "referral_join",
         "facebook_join",
         "instagram_join",
         "twitter_join",

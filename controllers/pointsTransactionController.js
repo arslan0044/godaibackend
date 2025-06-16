@@ -168,19 +168,19 @@ const joinCommunity = async (req, res) => {
     }
 
     // 3. Check for existing join using the new model (atomic check)
-    // const existingJoin = await CommunityJoin.findOne({
-    //   user: userId,
-    //   communityType: normalizedType,
-    // }).session(session);
+    const existingJoin = await CommunityJoin.findOne({
+      user: userId,
+      communityType: normalizedType,
+    }).session(session);
 
-    // if (existingJoin) {
-    //   await session.abortTransaction();
-    //   session.endSession();
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: `You've already joined our ${normalizedType} community`,
-    //   });
-    // }
+    if (existingJoin) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({
+        success: false,
+        message: `You've already joined our ${normalizedType} community`,
+      });
+    }
 
     // 4. Get points configuration
     const activityConfig = await ActivityPoints.findOne({
@@ -287,7 +287,7 @@ const joinCommunity = async (req, res) => {
     await session.abortTransaction();
     session.endSession();
 
-    console.error("Error in community-join:", error);
+    // console.error("Error in community-join:", error);
 
     if (error.code === 11000) {
       // Duplicate key error
@@ -306,7 +306,14 @@ const joinCommunity = async (req, res) => {
 };
 
 const transferTokens = async (req, res, next) => {
-  const { recipientId, tokens, message, memo, transferFee = 0, gasFee = 0 } = req.body;
+  const {
+    recipientId,
+    tokens,
+    message,
+    memo,
+    transferFee = 0,
+    gasFee = 0,
+  } = req.body;
   const senderId = req.user._id;
 
   // Input validation
@@ -318,27 +325,31 @@ const transferTokens = async (req, res, next) => {
   }
 
   if (!recipientId) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Recipient ID is required." 
+    return res.status(400).json({
+      success: false,
+      message: "Recipient ID is required.",
     });
   }
 
   if (senderId.toString() === recipientId.toString()) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Cannot transfer tokens to yourself." 
+    return res.status(400).json({
+      success: false,
+      message: "Cannot transfer tokens to yourself.",
     });
   }
 
   if (typeof tokens !== "number" || isNaN(tokens) || tokens <= 0) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Tokens must be a positive number." 
+    return res.status(400).json({
+      success: false,
+      message: "Tokens must be a positive number.",
     });
   }
 
-  if (typeof transferFee !== "number" || isNaN(transferFee) || transferFee < 0) {
+  if (
+    typeof transferFee !== "number" ||
+    isNaN(transferFee) ||
+    transferFee < 0
+  ) {
     return res.status(400).json({
       success: false,
       message: "Transfer fee must be a non-negative number.",
@@ -355,12 +366,13 @@ const transferTokens = async (req, res, next) => {
   if (transferFee >= tokens) {
     return res.status(400).json({
       success: false,
-      message: "Transfer fee cannot be equal to or exceed the tokens being transferred.",
+      message:
+        "Transfer fee cannot be equal to or exceed the tokens being transferred.",
     });
   }
 
   const session = await mongoose.startSession();
-  
+
   try {
     await session.withTransaction(async () => {
       // Verify recipient exists
@@ -377,7 +389,9 @@ const transferTokens = async (req, res, next) => {
 
       const totalDeduction = parseFloat((tokens + gasFee).toFixed(8));
       if (sender.tokens < totalDeduction) {
-        throw new Error(`Insufficient token balance. Need ${totalDeduction} but only have ${sender.tokens}`);
+        throw new Error(
+          `Insufficient token balance. Need ${totalDeduction} but only have ${sender.tokens}`
+        );
       }
 
       // Prepare transfer options
@@ -391,19 +405,20 @@ const transferTokens = async (req, res, next) => {
           ipAddress: req.ip,
           platform: req.headers["user-agent"],
           walletAddress: sender.walletAddress,
-          blockchainNetwork: process.env.BLOCKCHAIN_NETWORK || "mainnet"
+          blockchainNetwork: process.env.BLOCKCHAIN_NETWORK || "mainnet",
         },
-        session: session
+        session: session,
       };
 
       // Execute transfer
-      const { senderTx, recipientTx, feeTx } = await TokenTransaction.createTransfer(
-        senderId,
-        recipientId,
-        parseFloat(tokens.toFixed(8)),
-        parseFloat(transferFee.toFixed(8)),
-        transferOptions
-      );
+      const { senderTx, recipientTx, feeTx } =
+        await TokenTransaction.createTransfer(
+          senderId,
+          recipientId,
+          parseFloat(tokens.toFixed(8)),
+          parseFloat(transferFee.toFixed(8)),
+          transferOptions
+        );
 
       // Success response
       res.status(200).json({
@@ -414,18 +429,18 @@ const transferTokens = async (req, res, next) => {
           recipientTransaction: recipientTx,
           feeTransaction: feeTx || null,
           networkFee: parseFloat(gasFee.toFixed(8)),
-          totalDeduction: totalDeduction
+          totalDeduction: totalDeduction,
         },
       });
     });
   } catch (error) {
     console.error("Error during token transfer:", error);
-    
+
     // Handle specific errors
     if (error.message.includes("Insufficient token balance")) {
-      return res.status(400).json({ 
-        success: false, 
-        message: error.message 
+      return res.status(400).json({
+        success: false,
+        message: error.message,
       });
     }
     if (error.message.includes("user not found")) {
@@ -437,15 +452,16 @@ const transferTokens = async (req, res, next) => {
     if (error.message === "System account not configured") {
       return res.status(500).json({
         success: false,
-        message: "System account for fees is not configured. Please contact support.",
+        message:
+          "System account for fees is not configured. Please contact support.",
       });
     }
-    
+
     // Generic error response
     res.status(500).json({
       success: false,
       message: "An unexpected error occurred during token transfer.",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   } finally {
     await session.endSession();
