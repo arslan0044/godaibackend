@@ -168,10 +168,10 @@ const joinCommunity = async (req, res) => {
     }
 
     // 3. Check for existing join using the new model (atomic check)
-    const existingJoin = await CommunityJoin.findOne({
-      user: userId,
-      communityType: normalizedType,
-    }).session(session);
+    // const existingJoin = await CommunityJoin.findOne({
+    //   user: userId,
+    //   communityType: normalizedType,
+    // }).session(session);
 
     // if (existingJoin) {
     //   await session.abortTransaction();
