@@ -173,14 +173,14 @@ const joinCommunity = async (req, res) => {
       communityType: normalizedType,
     }).session(session);
 
-    if (existingJoin) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({
-        success: false,
-        message: `You've already joined our ${normalizedType} community`,
-      });
-    }
+    // if (existingJoin) {
+    //   await session.abortTransaction();
+    //   session.endSession();
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: `You've already joined our ${normalizedType} community`,
+    //   });
+    // }
 
     // 4. Get points configuration
     const activityConfig = await ActivityPoints.findOne({
