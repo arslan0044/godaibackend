@@ -1,51 +1,51 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
 const app = express();
-const logger = require('./startup/logger'); // Adjust the path as needed
-const cron = require('node-cron');
-const moment = require('moment');
+const logger = require("./startup/logger"); // Adjust the path as needed
+const cron = require("node-cron");
+const moment = require("moment");
 
 const admin = require("firebase-admin");
-const Reminder = require('./models/Reminder');
+const Reminder = require("./models/Reminder");
 
 const config = {
-  "type": process.env.TYPE,
-  "project_id":process.env.PROJECTID,
-  "private_key_id": process.env.PRIVATE_KEY_ID,
-  "private_key":process.env.PRIVATE_KEY,
-  "client_email":process.env.CLIENT_EMAIL,
-  "client_id": process.env.CLIENTID,
-  "auth_uri": process.env.AUTH_URI,
-  "token_uri": process.env.TOKEN_URL,
-  "auth_provider_x509_cert_url":process.env.AUTHPROVIDER,
-  "client_x509_cert_url": process.env.CLIENT_CERT,
-  "universe_domain": process.env.DOMAIN
-  };
+  type: process.env.TYPE,
+  project_id: process.env.PROJECTID,
+  private_key_id: process.env.PRIVATE_KEY_ID,
+  private_key: process.env.PRIVATE_KEY,
+  client_email: process.env.CLIENT_EMAIL,
+  client_id: process.env.CLIENTID,
+  auth_uri: process.env.AUTH_URI,
+  token_uri: process.env.TOKEN_URL,
+  auth_provider_x509_cert_url: process.env.AUTHPROVIDER,
+  client_x509_cert_url: process.env.CLIENT_CERT,
+  universe_domain: process.env.DOMAIN,
+};
 
-
-  admin.initializeApp({
-    credential: admin.credential.cert(config),
-    storageBucket: "gs://demoproject-158d6.appspot.com"
-  });
-  
+admin.initializeApp({
+  credential: admin.credential.cert(config),
+  storageBucket: "gs://demoproject-158d6.appspot.com",
+});
 
 app.use(cors());
 
-require('./startup/config')();
-require('./startup/logging')();
-require('./startup/routes')(app);
-require('./startup/db')();
-require('./startup/validation')();
+require("./startup/config")();
+require("./startup/logging")();
+require("./startup/routes")(app);
+require("./startup/db")();
+require("./startup/validation")();
 
 const port = process.env.PORT || 8080;
-const server = app.listen(port, () => logger.info(`Listening on port  ${port}...`));
+const server = app.listen(port, () =>
+  logger.info(`Listening on port  ${port}...`)
+);
 
 // require('./startup/sockets')(server, app);
 
-app.get("/terms",async (req, res) => {
-  const termsHtml=`<!DOCTYPE html>
+app.get("/terms", async (req, res) => {
+  const termsHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -171,12 +171,12 @@ app.get("/terms",async (req, res) => {
   </div>
 </body>
 </html>
-`
+`;
   res.send(termsHtml);
 });
 
-app.get("/privacy",async (req, res) => {
-  const termsHtml=`<!DOCTYPE html>
+app.get("/privacy", async (req, res) => {
+  const termsHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -332,33 +332,44 @@ app.get("/privacy",async (req, res) => {
 
 </body>
 </html>
-`
+`;
   res.send(termsHtml);
 });
 
 // Run every minute
-cron.schedule('* * * * *', async () => {
+cron.schedule("* * * * *", async () => {
   try {
     const reminders = await Reminder.find({
       reminderAt: { $lte: new Date() },
     }).populate("user");
 
-    reminders.forEach(async reminder => {
-      if (reminder.remind == 'none') {
-        await Reminder.findByIdAndDelete(reminder._id)
-      }else{
-
-        const nextDay = moment(reminder.reminderAt).add(1, 'day').toISOString();
-        const nextWeek = moment(reminder.reminderAt).add(1, 'week').toISOString();
-        await Reminder.findByIdAndUpdate(reminder._id,{$set:{reminderAt:reminder.remind=='daily'?nextDay:nextWeek }})
+    reminders.forEach(async (reminder) => {
+      if (reminder.remind == "none") {
+        await Reminder.findByIdAndDelete(reminder._id);
+      } else {
+        const nextDay = moment(reminder.reminderAt).add(1, "day").toISOString();
+        const nextWeek = moment(reminder.reminderAt)
+          .add(1, "week")
+          .toISOString();
+        await Reminder.findByIdAndUpdate(reminder._id, {
+          $set: { reminderAt: reminder.remind == "daily" ? nextDay : nextWeek },
+        });
       }
       try {
-        const title=reminder.type=='family'?"Reminder: "+reminder.title:"Reminder"
+        const title =
+          reminder.type == "family"
+            ? "Reminder: " + reminder.title
+            : "Reminder";
         const message = {
           token: reminder.user.fcmtoken, // replace with the user's device token
           notification: {
             title: title,
-            body:reminder.type=='family'? reminder.description:reminder.title+reminder.type=="grocery" ? "Quantity"+reminder.quantity:"",
+            body:
+              reminder.type == "family"
+                ? reminder.description
+                : reminder.title + reminder.type == "grocery"
+                ? "Quantity" + reminder.quantity
+                : "",
           },
           android: {
             notification: {
@@ -373,11 +384,11 @@ cron.schedule('* * * * *', async () => {
             },
           },
         };
-       await admin.messaging().send(message)
+        await admin.messaging().send(message);
       } catch (error) {}
     });
   } catch (err) {
-    console.error('❌ Cron Job Error:', err);
+    console.error("❌ Cron Job Error:", err);
   }
 });
 

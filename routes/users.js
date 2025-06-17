@@ -25,6 +25,7 @@ router.get("/me", auth, async (req, res) => {
     User.find({ referredBy: userId })
       .select("name username email profilePicture points premium createdAt")
       .sort({ createdAt: -1 })
+      .populate("CommunityJoin")
       .limit(50), // Limit to prevent excessive data transfer
   ]);
 
