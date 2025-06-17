@@ -113,10 +113,11 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  communityJoin: {
+  CommunityJoin: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: "CommunityJoin",
-  },
+    ref: 'Community',
+    default: []
+  }],
   pointsHistory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "PointsHistory",

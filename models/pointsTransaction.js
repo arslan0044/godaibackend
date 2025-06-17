@@ -264,7 +264,7 @@ pointsTransactionSchema.statics.createTransfer = async function(
       user: recipientId,
       relatedUser: senderId,
       actionType: 'transfer_in',
-      points: points - fee,
+      points: recipientNewBalance - fee,
       balanceAfter: recipientNewBalance,
       transferDetails: {
         sender: senderId,

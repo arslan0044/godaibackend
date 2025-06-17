@@ -53,7 +53,6 @@ router.get("/get-all-users", async (req, res) => {
     // Get paginated users (excluding sensitive fields)
     const users = await User.find(query)
       .select("-password -__v -fcmtoken -socialMediaAccounts.accessToken")
-      .populate("communityJoin")
       .sort(sort)
       .skip(skip)
       .limit(limit)

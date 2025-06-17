@@ -326,7 +326,7 @@ tokenTransactionSchema.statics.createTransfer = async function (
     if (!sender) throw new Error("Sender user not found");
 
     const senderBalance = parseFloat(sender.token || 0);
-    console.log(`Sender`, senderBalance);
+
     if (isNaN(senderBalance)) {
       throw new Error("Invalid sender token balance");
     }
@@ -352,10 +352,11 @@ tokenTransactionSchema.statics.createTransfer = async function (
     const recipient = await User.findById(recipientId).session(session);
     if (!recipient) throw new Error("Recipient user not found");
 
-    const recipientBalance = parseFloat(recipient.tokens || 0);
+    const recipientBalance = parseFloat(recipient.token || 0);
     const recipientNewBalance = parseFloat(
       (recipientBalance + (tokens - fee)).toFixed(8)
     );
+
     if (isNaN(recipientNewBalance)) {
       throw new Error("Invalid recipient balance calculation");
     }
@@ -385,7 +386,7 @@ tokenTransactionSchema.statics.createTransfer = async function (
       user: recipientId,
       relatedUser: senderId,
       actionType: "transfer_in",
-      tokens: tokens - fee,
+      tokens: recipientNewBalance,
       balanceAfter: recipientNewBalance,
       transferDetails: {
         sender: senderId,
@@ -400,6 +401,7 @@ tokenTransactionSchema.statics.createTransfer = async function (
       _updatedBy: options.actorId,
       _statusChangeReason: options.reason,
     });
+    console.log(`recip`, recipientTx);
 
     let feeTx = null;
     if (fee > 0) {
@@ -427,12 +429,24 @@ tokenTransactionSchema.statics.createTransfer = async function (
         metadata: options.metadata,
       });
     }
-
+    await Promise.all([
+      User.findByIdAndUpdate(
+        senderId,
+        { $set: { token: senderNewBalance } },
+        { session }
+      ),
+      User.findByIdAndUpdate(
+        recipientId,
+        { $set: { token: recipientNewBalance } },
+        { session }
+      ),
+    ]);
     // Save all transactions
     const savePromises = [
       senderTx.save({ session }),
       recipientTx.save({ session }),
     ];
+    console.log(`senderTx`, savePromises);
     if (feeTx) savePromises.push(feeTx.save({ session }));
     await Promise.all(savePromises);
 

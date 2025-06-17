@@ -18,29 +18,59 @@ const ActivityPoints = require("../models/activityPoints");
 const PointsHistory = require("../models/pointsHistory");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
+const communityJoin = require("../models/communityJoin");
 router.get("/me", auth, async (req, res) => {
-  const userId = req.user._id;
-  const [user, referralUsers] = await Promise.all([
-    User.findById(userId).select("-password"),
-    User.find({ referredBy: userId })
-      .select("name username email profilePicture points premium createdAt")
-      .sort({ createdAt: -1 })
-      .populate("CommunityJoin")
-      .limit(50), // Limit to prevent excessive data transfer
-  ]);
+  try {
+    const userId = req.user._id;
 
-  if (!user) {
-    return res.status(404).send({ success: false, message: "User not found" });
+    const [user, referralUsers, userCommunities] = await Promise.all([
+      // Get user data
+      User.findById(userId).select("-password").lean(),
+
+      // Get referral users
+      User.find({ referredBy: userId })
+        .select(
+          "name email pointsBalance profilePicture points premium createdAt"
+        )
+        .lean(),
+
+      // Get communities the user has joined
+      communityJoin.find({ user: userId }).lean(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Construct response
+    const response = {
+      success: true,
+      user: {
+        ...user,
+        referrals: {
+          count: referralUsers.length,
+          users: referralUsers,
+          totalPointsEarned: user.referralStats?.pointsEarnedFromReferrals || 0,
+        },
+        communityStats: {
+          joinedCount: userCommunities.length,
+          communities: userCommunities,
+        },
+      },
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Error in /me endpoint:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
   }
-  const userObj = user.toObject();
-
-  // Add referral information
-  userObj.referrals = {
-    count: referralUsers.length,
-    users: referralUsers,
-    totalPointsEarned: user.referralStats?.pointsEarnedFromReferrals || 0,
-  };
-  res.send({ success: true, user: userObj });
 });
 
 router.post("/forget-password", async (req, res) => {
@@ -308,6 +338,12 @@ router.post("/signup", async (req, res) => {
   // Generate referral code for the new user if not exists
   if (!newUser.referralCode) {
     newUser.referralCode = generateReferralCode(newUser._id);
+    const referralConfig = await ActivityPoints.findOne({
+      activityType: "referral_signup",
+    });
+    newUser.points = referralConfig.points;
+    newUser.pointsBalance = referralConfig.points;
+    newUser.pointsRedeemed = referralConfig.points;
     await newUser.save();
   }
 
@@ -381,6 +417,9 @@ router.put("/update-user", auth, async (req, res) => {
       phone,
       tone,
       email,
+      ponts,
+      pointsBalance,
+      pointsEarned,
     } = req.body;
 
     // Create an object to store the fields to be updated
@@ -395,6 +434,9 @@ router.put("/update-user", auth, async (req, res) => {
         voice,
         phone,
         tone,
+        ponts,
+        pointsBalance,
+        pointsEarned,
         email,
       }).filter(([key, value]) => value !== undefined)
     );

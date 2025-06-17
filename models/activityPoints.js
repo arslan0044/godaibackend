@@ -5,7 +5,11 @@ const activityPointsSchema = new mongoose.Schema({
     required: true,
     unique: true,
     enum: [
+      "referral_signup",
       "referral_join",
+      "play_game",
+      "listen_music",
+      "watch_video",
       "facebook_join",
       "instagram_join",
       "twitter_join",
@@ -15,7 +19,7 @@ const activityPointsSchema = new mongoose.Schema({
       "whatsapp_join",
       "telegram_join",
       "webxv_join",
-      "discord_join"
+      "discord_join",
     ],
   },
   points: {
@@ -40,4 +44,4 @@ activityPointsSchema.pre("save", function (next) {
 });
 
 // const ActivityPoints = mongoose.model("ActivityPoints", activityPointsSchema);
-module.exports = mongoose.model('ActivityPoints', activityPointsSchema);
+module.exports = mongoose.model("ActivityPoints", activityPointsSchema);

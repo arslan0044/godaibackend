@@ -388,9 +388,9 @@ const transferTokens = async (req, res, next) => {
       }
 
       const totalDeduction = parseFloat((tokens + gasFee).toFixed(8));
-      if (sender.tokens < totalDeduction) {
+      if (sender.token < totalDeduction) {
         throw new Error(
-          `Insufficient token balance. Need ${totalDeduction} but only have ${sender.tokens}`
+          `Insufficient token balance. Need ${totalDeduction} but only have ${sender.token}`
         );
       }
 
