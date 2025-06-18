@@ -218,6 +218,7 @@ router.post("/verify-otp/registration", async (req, res) => {
         .status(200)
         .json({ success: false, message: "Incorrect verification code" });
     }
+    await User.findOneAndUpdate({ email: lowerCaseEmail }, { verify: true });
 
     return res.json({
       success: true,

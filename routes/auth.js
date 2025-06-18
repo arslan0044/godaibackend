@@ -45,20 +45,15 @@ router.post("/admin", async (req, res) => {
       .send({ success: false, message: "Invalid credentials" });
 
   if (user.status == "deleted")
-    return res
-      .status(400)
-      .send({
-        success: false,
-        message: "User has been deleted. Contact admin for further support.",
-      });
+    return res.status(400).send({
+      success: false,
+      message: "User has been deleted. Contact admin for further support.",
+    });
   if (user.status == "deactivated")
-    return res
-      .status(400)
-      .send({
-        success: false,
-        message:
-          "User has been deactivated. Contact admin for further support.",
-      });
+    return res.status(400).send({
+      success: false,
+      message: "User has been deactivated. Contact admin for further support.",
+    });
 
   const token = admingenerateIdToken(user._id, user.type);
   res.send({
@@ -95,14 +90,20 @@ router.post("/:type?", async (req, res) => {
       return;
     }
 
-    if (user.status == "deleted")
-      return res
-        .status(400)
-        .send({
-          success: false,
-          message: "User has been deleted. Contact admin for further support.",
-        });
-
+    if (user.status == "deleted" || user.status == "deactivated") {
+      return res.status(400).send({
+        success: false,
+        message: `User has been ${user.status}. Contact admin for further support.`,
+      });
+    }
+    if (user.verify == false) {
+      return res.status(400).send({
+        success: false,
+        email: user.email,
+        isVerified: user.verify,
+        message: `User is not verified. Please verify your email to login.`,
+      });
+    }
     await User.findByIdAndUpdate(user._id, { fcmtoken });
     const token = generateAuthToken(user._id, user.type);
     res.send({
@@ -140,22 +141,19 @@ router.post("/:type?", async (req, res) => {
       .status(400)
       .send({ success: false, message: "Invalid credentials" });
 
-  if (user.status == "deleted")
-    return res
-      .status(400)
-      .send({
-        success: false,
-        message: "User has been deleted. Contact admin for further support.",
-      });
-  if (user.status == "deactivated")
-    return res
-      .status(400)
-      .send({
-        success: false,
-        message:
-          "User has been deactivated. Contact admin for further support.",
-      });
-
+  if (user.status == "deactivated" || user.status == "deleted")
+    return res.status(400).send({
+      success: false,
+      message: `User has been ${user.status}. Contact admin for further support.`,
+    });
+  if (user.verify == false) {
+    return res.status(400).send({
+      success: false,
+      email: user.email,
+      isVerified: user.verify,
+      message: `User is not verified. Please verify your email to login.`,
+    });
+  }
   user.fcmtoken = fcmtoken;
   await user.save();
 
