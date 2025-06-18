@@ -96,15 +96,8 @@ router.post("/:type?", async (req, res) => {
         message: `User has been ${user.status}. Contact admin for further support.`,
       });
     }
-    if (user.verify == false) {
-      return res.status(400).send({
-        success: false,
-        email: user.email,
-        isVerified: user.verify,
-        message: `User is not verified. Please verify your email to login.`,
-      });
-    }
-    await User.findByIdAndUpdate(user._id, { fcmtoken });
+    await User.findByIdAndUpdate(user._id, { fcmtoken, verify: true });
+
     const token = generateAuthToken(user._id, user.type);
     res.send({
       token: token,

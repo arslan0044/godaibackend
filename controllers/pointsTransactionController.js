@@ -276,12 +276,15 @@ const joinCommunity = async (req, res) => {
     // Commit the transaction
     await session.commitTransaction();
     session.endSession();
+    const communities = await CommunityJoin.find({ user: userId }).lean();
 
     res.status(200).json({
       success: true,
+      user: updatedUser,
       message: `Successfully joined ${normalizedType} community`,
       pointsEarned: activityConfig.points,
       totalPoints: updatedUser.points,
+      communities: communities,
     });
   } catch (error) {
     await session.abortTransaction();
