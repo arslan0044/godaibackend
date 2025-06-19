@@ -115,7 +115,7 @@ const userSchema = new mongoose.Schema({
   },
   CommunityJoin: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Community',
+    ref: 'CommunityJoin',
     default: []
   }],
   pointsHistory: {

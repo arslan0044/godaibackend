@@ -108,7 +108,7 @@ router.get("/user/:id", async (req, res) => {
           select: "name email createdAt points",
         },
         {
-          path: "communityJoin",
+          path: "CommunityJoin",
           select: "communityType joinedAt pointsEarned",
         },
         {
