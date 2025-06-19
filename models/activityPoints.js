@@ -7,6 +7,7 @@ const activityPointsSchema = new mongoose.Schema({
     enum: [
       "referral_signup",
       "referral_join",
+      "daily_login",
       "play_game",
       "listen_music",
       "watch_video",
