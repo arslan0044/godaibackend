@@ -162,6 +162,18 @@ router.put("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const updateData = req.body;
+    const { status } = updateData;
+    if (
+      status !== "online" &&
+      status !== "deactivated" &&
+      status !== "deleted"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid status value. Allowed values are 'online', 'deactivated', or 'deleted'.",
+      });
+    }
 
     // Check if user exists
     const user = await User.findById(userId);
@@ -169,16 +181,6 @@ router.put("/user/:id", async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "User not found",
-      });
-    } else if (user.status === "deleted") {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot update a deleted user",
-      });
-    } else if (user.status === "deactivated") {
-      return res.status(400).json({
-        success: false,
-        message: "Cannot update a deactivated user",
       });
     }
     // Update user data
