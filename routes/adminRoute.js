@@ -1,7 +1,7 @@
 const express = require("express");
 const { User } = require("../models/user");
 const router = express.Router();
-
+const { Faq } = require("../models/Faq");
 /**
  * @route GET /api/admin/get-all-users
  * @description Get paginated list of users with filtering and sorting
@@ -260,6 +260,112 @@ router.get("/", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error",
+    });
+  }
+});
+router.get("/faq", async (req, res) => {
+  const faq = await Faq.find({}).lean();
+  if (!faq) {
+    return res.status(404).json({
+      success: false,
+      message: "No FAQs found",
+    });
+  }
+  res.json({
+    success: true,
+    faq: faq,
+  });
+});
+
+router.post("/faq", async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and description are required",
+      });
+    }
+    const newFaq = new Faq({ title, description });
+    await newFaq.save();
+    res.status(201).json({
+      success: true,
+      message: "FAQ created successfully",
+      faq: newFaq,
+    });
+  } catch (error) {
+    console.error("Error creating FAQ:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create FAQ",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+router.put("/faq/:id", async (req, res) => {
+  try {
+    const faqId = req.params.id;
+    const { title, description } = req.body;
+
+    // Validate input
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and description are required",
+      });
+    }
+
+    // Find and update the FAQ
+    const updatedFaq = await Faq.findByIdAndUpdate(
+      faqId,
+      { title, description },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedFaq) {
+      return res.status(404).json({
+        success: false,
+        message: "FAQ not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "FAQ updated successfully",
+      faq: updatedFaq,
+    });
+  } catch (error) {
+    console.error("Error updating FAQ:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update FAQ",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+router.delete("/faq/:id", async (req, res) => {
+  try {
+    const faqId = req.params.id;
+
+    // Find and delete the FAQ
+    const deletedFaq = await Faq.findByIdAndDelete(faqId);
+    if (!deletedFaq) {
+      return res.status(404).json({
+        success: false,
+        message: "FAQ not found",
+      });
+    }
+    res.json({
+      success: true,
+      message: "FAQ deleted successfully",
+      faq: deletedFaq,
+    });
+  } catch (error) {
+    console.error("Error deleting FAQ:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete FAQ",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });
