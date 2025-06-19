@@ -11,7 +11,7 @@ const PageSchema = new mongoose.Schema(
     description: {
       type: String,
       required: [true, "Page content is required"],
-      minlength: [50, "Content should be at least 50 characters long"],
+      // minlength: [50, "Content should be at least 50 characters long"],
     },
     slug: {
       type: String,
@@ -27,7 +27,7 @@ const PageSchema = new mongoose.Schema(
     seoDescription: {
       type: String,
       trim: true,
-      maxlength: [160, "SEO description should not exceed 160 characters"],
+      // maxlength: [160, "SEO description should not exceed 160 characters"],
     },
     isActive: {
       type: Boolean,
