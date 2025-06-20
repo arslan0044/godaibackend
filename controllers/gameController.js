@@ -78,13 +78,15 @@ exports.playGame = async (req, res) => {
     });
 
     await playGameEntry.save({ session });
+
     if (score > 0) {
       // Update user's points
-      await User.updateOne(
+     await User.updateOne(
         { _id: userId },
         { $inc: { points: score, pointsBalance: score } },
         { session }
       );
+
     }
 
     await session.commitTransaction();
