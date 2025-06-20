@@ -263,21 +263,33 @@ router.get("/", async (req, res) => {
     });
   }
 });
-router.get("/faq", async (req, res) => {
-  const faq = await Faq.find({}).lean();
-  if (!faq) {
-    return res.status(404).json({
-      success: false,
-      message: "No FAQs found",
-    });
-  }
-  res.json({
-    success: true,
-    faq: faq,
+
+ router.post("/faq", async (req, res) => {
+    try {
+      const { title, description } = req.body;
+      if (!title || !description) {
+        return res.status(400).json({
+          success: false,
+          message: "Title and description are required",
+        });
+      }
+      const newFaq = new Faq({ title, description });
+      await newFaq.save();
+      res.status(201).json({
+        success: true,
+        message: "FAQ created successfully",
+        faq: newFaq,
+      });
+    } catch (error) {
+      console.error("Error creating FAQ:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create FAQ",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
+    }
   });
-});
-
-
 router.put("/faq/:id", async (req, res) => {
   try {
     const faqId = req.params.id;

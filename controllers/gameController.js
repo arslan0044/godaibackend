@@ -52,7 +52,13 @@ exports.playGame = async (req, res) => {
         success: true,
         message:
           "Game played successfully, but no points awarded (already received points within 24 hours).",
-        data: existingPlay,
+        data: {
+          userId,
+          gameId,
+          gameName,
+          score: 0,
+          createdAt: existingPlay.createdAt,
+        },
       });
     }
 
