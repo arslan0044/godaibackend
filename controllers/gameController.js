@@ -78,13 +78,11 @@ exports.playGame = async (req, res) => {
     });
 
     await playGameEntry.save({ session });
-    const user = await User.findById(userId);
-    const updatedPoints = user.points + score;
     if (score > 0) {
       // Update user's points
       await User.updateOne(
         { _id: userId },
-        { $inc: { points: updatedPoints, pointsBalance: updatedPoints } },
+        { $inc: { points: score, pointsBalance: score } },
         { session }
       );
     }
