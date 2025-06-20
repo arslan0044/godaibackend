@@ -41,7 +41,7 @@ exports.playGame = async (req, res) => {
 
     const existingPlay = await PlayGame.findOne({
       userId,
-      gameId,
+      // gameId,
       score: { $gt: 0 }, // Only check plays that awarded points
       createdAt: { $gte: twentyFourHoursAgo },
     }).session(session);
