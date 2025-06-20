@@ -19,6 +19,8 @@ const PointsHistory = require("../models/pointsHistory");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 const communityJoin = require("../models/communityJoin");
+const {playGame} = require("../controllers/gameController");
+router.post("/play-game", auth, playGame);
 router.get("/me", auth, async (req, res) => {
   try {
     const userId = req.user._id;
