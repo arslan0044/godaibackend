@@ -13,7 +13,7 @@ const points = require("../routes/PointsTreansactionRoute");
 const admin = require("../routes/adminRoute");
 const pageRoutes = require("../routes/pagesRoute");
 const { Faq } = require("../models/Faq");
-
+const { getPurchasedTokens } = require("../controllers/PurchasedTokenController");
 module.exports = function (app) {
   app.use(express.json());
   app.get("/api/admin/faq", async (req, res) => {
@@ -29,6 +29,7 @@ module.exports = function (app) {
       faq: faq,
     });
   });
+  app.get("/api/admin/purchased-coin", getPurchasedTokens);
   app.use("/api/auth", auth);
   app.use("/api/users", users);
   app.use("/api/reminder", authMiddleware, blogRoute);

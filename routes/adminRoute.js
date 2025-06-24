@@ -2,6 +2,7 @@ const express = require("express");
 const { User } = require("../models/user");
 const router = express.Router();
 const { Faq } = require("../models/Faq");
+const { createPurchasedToken, updatePurchasedToken, deletePurchasedToken } = require("../controllers/PurchasedTokenController");
 /**
  * @route GET /api/admin/get-all-users
  * @description Get paginated list of users with filtering and sorting
@@ -23,6 +24,7 @@ router.get("/get-all-users", async (req, res) => {
     const sort = req.query.sort || "-createdAt";
     const search = req.query.search;
     const status = req.query.status;
+    const premium = req.query.premium;
     const tier = req.query.tier;
 
     // Build the query
@@ -40,6 +42,9 @@ router.get("/get-all-users", async (req, res) => {
     // Status filter
     if (status) {
       query.status = status;
+    }
+    if (premium) {
+      query.premium = premium === "true"; // Convert to boolean
     }
 
     // Tier filter
@@ -357,4 +362,7 @@ router.delete("/faq/:id", async (req, res) => {
     });
   }
 });
+router.post("/purchased-coin", createPurchasedToken);
+router.put("/purchased-coin/:id", updatePurchasedToken);
+router.delete("/purchased-coin/:id", deletePurchasedToken);
 module.exports = router;
