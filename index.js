@@ -6,7 +6,7 @@ const app = express();
 const logger = require("./startup/logger"); // Adjust the path as needed
 const cron = require("node-cron");
 const moment = require("moment");
-
+const { sendReminderEmail } = require("./controllers/emailservice");
 const admin = require("firebase-admin");
 const Reminder = require("./models/Reminder");
 
@@ -342,6 +342,7 @@ cron.schedule("* * * * *", async () => {
     const reminders = await Reminder.find({
       reminderAt: { $lte: new Date() },
     }).populate("user");
+    console.log("Reminders found:", reminders.length);
     reminders.forEach(async (reminder) => {
       if (reminder.remind == "none") {
         await Reminder.findByIdAndDelete(reminder._id);
@@ -354,9 +355,13 @@ cron.schedule("* * * * *", async () => {
           $set: { reminderAt: reminder.remind == "daily" ? nextDay : nextWeek },
         });
       }
+      console.log("Reminder found each:", reminder);
+      await sendReminderEmail(reminder);
+      const type = toTitleCase(reminder.type);
+      console.log(type)
       try {
-        const title = "Reminder: " + reminder.title
-            
+        const title = `${type} Reminder: ${reminder.title}`;
+
         const message = {
           token: reminder.user.fcmtoken, // replace with the user's device token
           notification: {
@@ -389,4 +394,11 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
+function toTitleCase(str) {
+  return str
+    .toLowerCase() // convert entire string to lowercase
+    .split(" ") // split by spaces
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // capitalize first letter
+    .join(" "); // join words back with space
+}
 module.exports = server;
