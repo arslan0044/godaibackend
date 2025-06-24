@@ -26,7 +26,7 @@ const config = {
 
 admin.initializeApp({
   credential: admin.credential.cert(config),
-  storageBucket: "gs://demoproject-158d6.appspot.com",
+  storageBucket: "gs://godai-507ae.appspot.com",
 });
 
 app.use(cors());
@@ -342,7 +342,6 @@ cron.schedule("* * * * *", async () => {
     const reminders = await Reminder.find({
       reminderAt: { $lte: new Date() },
     }).populate("user");
-
     reminders.forEach(async (reminder) => {
       if (reminder.remind == "none") {
         await Reminder.findByIdAndDelete(reminder._id);
