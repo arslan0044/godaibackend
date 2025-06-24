@@ -355,10 +355,8 @@ cron.schedule("* * * * *", async () => {
         });
       }
       try {
-        const title =
-          reminder.type == "family"
-            ? "Reminder: " + reminder.title
-            : "Reminder";
+        const title = "Reminder: " + reminder.title
+            
         const message = {
           token: reminder.user.fcmtoken, // replace with the user's device token
           notification: {
