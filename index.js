@@ -13,9 +13,9 @@ const Reminder = require("./models/Reminder");
 const config = {
   type: process.env.TYPE,
   project_id: process.env.PROJECTID,
-  private_key_id: process.env.PRIVATE_KEY_ID,
-  private_key: process.env.PRIVATE_KEY,
   client_email: process.env.CLIENT_EMAIL,
+  private_key: process.env.PRIVATE_KEY,
+  private_key_id: process.env.PRIVATE_KEY_ID,
   client_id: process.env.CLIENTID,
   auth_uri: process.env.AUTH_URI,
   token_uri: process.env.TOKEN_URL,

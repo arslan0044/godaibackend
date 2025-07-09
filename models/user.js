@@ -193,7 +193,7 @@ const User = mongoose.model("User", userSchema);
 function validateUser(user) {
   const commonSchema = {
     name: Joi.string().min(2).max(50).required(),
-    phone: Joi.string().min(2).max(50).required(),
+    phone: Joi.string().min(2).max(50).optional(),
     password: Joi.string().min(5).max(255).required(),
     email: Joi.string().min(5).max(255).email(),
     voice: Joi.string().min(0).max(1024).optional(),
