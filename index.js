@@ -28,28 +28,36 @@ admin.initializeApp({
   credential: admin.credential.cert(config),
   storageBucket: "gs://godai-507ae.appspot.com",
 });
-const allowedOrigins = [
-  "https://admin.joinchainai.com",
-  "https://app.joinchainai.com",
-  "http://admin.joinchainai.com",
-  "http://app.joinchainai.com",
-];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
+// const allowedOrigins = [
+//   "https://admin.joinchainai.com",
+//   "https://app.joinchainai.com",
+//   "http://admin.joinchainai.com",
+//   "http://app.joinchainai.com",
+//   "*"
+// ];
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  optionsSuccessStatus: 200,
-};
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin) return callback(null, true);
 
-app.use(cors(corsOptions));
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   optionsSuccessStatus: 200,
+// };
 
+// app.use(cors(corsOptions));
+
+app.use(
+  cors({
+    origin: "*", // allows all origins
+    optionsSuccessStatus: 200,
+  })
+);
 require("./startup/config")();
 require("./startup/logging")();
 require("./startup/routes")(app);
