@@ -31,8 +31,7 @@ const userSchema = new mongoose.Schema({
   profilePicture: {
     type: String,
     required: false,
-    default:
-      "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop",
+    default: "https://www.gravatar.com/avatar/?d=mp",
   },
   code: {
     type: Number,
@@ -113,11 +112,13 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  CommunityJoin: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CommunityJoin',
-    default: []
-  }],
+  CommunityJoin: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CommunityJoin",
+      default: [],
+    },
+  ],
   pointsHistory: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "PointsHistory",
@@ -129,7 +130,7 @@ const userSchema = new mongoose.Schema({
   token: {
     type: Number,
     default: 0,
-    min: 0, 
+    min: 0,
     set: (val) => parseFloat(val.toFixed(8)), // For crypto decimal precision
   },
   tokenTransactions: [
