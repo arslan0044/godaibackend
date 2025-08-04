@@ -4,10 +4,15 @@ const logger = require("../startup/logger"); // Adjust the path as needed
 exports.sendEmail = async (email, code) => {
   // Create a Nodemailer transporter object
   const transporter = nodemailer.createTransport({
-    service: "Gmail",
+    host: "mail.joinchainai.com",
+    port: 587,
+    secure: false, // Use TLS
     auth: {
-      user: "danishgoheer17@gmail.com",
-      pass: "zzmftuogtusnnriu",
+      user: "noreply@joinchainai.com",
+      pass: "ChainAi@2025",
+    },
+    tls: {
+      rejectUnauthorized: false, // Optional: Disables certificate validation
     },
   });
 
@@ -140,10 +145,15 @@ exports.sendEmail = async (email, code) => {
 exports.sendReminderEmail = async (Reminder) => {
   console.log("Sending reminder email for:", Reminder);
   const transporter = nodemailer.createTransport({
-    service: "Gmail",
+    host: "mail.joinchainai.com",
+    port: 587,
+    secure: false, // Use TLS
     auth: {
-      user: "danishgoheer17@gmail.com",
-      pass: "zzmftuogtusnnriu",
+      user: "noreply@joinchainai.com",
+      pass: "ChainAi@2025",
+    },
+    tls: {
+      rejectUnauthorized: false, // Optional: Disables certificate validation
     },
   });
   const mailOptions = {
@@ -302,13 +312,19 @@ exports.sendReminderEmail = async (Reminder) => {
       
       <div class="reminder-card">
         <h2 class="reminder-title">${Reminder.title}</h2>
-        <p class="reminder-detail"><strong>Description:</strong> ${Reminder.description || "No description provided."}</p>
+        <p class="reminder-detail"><strong>Description:</strong> ${
+          Reminder.description || "No description provided."
+        }</p>
         <p class="reminder-detail"><strong>Priority:</strong> 
-          <span class="priority-${Reminder.priority ? Reminder.priority.toLowerCase() : 'normal'}">
+          <span class="priority-${
+            Reminder.priority ? Reminder.priority.toLowerCase() : "normal"
+          }">
             ${Reminder.priority || "Normal"}
           </span>
         </p>
-        <p class="reminder-detail"><strong>Category:</strong> ${Reminder.type || "General"}</p>
+        <p class="reminder-detail"><strong>Category:</strong> ${
+          Reminder.type || "General"
+        }</p>
       </div>
       
       <a href="#" class="cta-button">View Task Details</a>
