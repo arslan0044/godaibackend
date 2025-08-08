@@ -14,12 +14,28 @@ exports.sendEmail = async (email, code) => {
     tls: {
       rejectUnauthorized: false, // Optional: Disables certificate validation
     },
+    name: "chainai-mailserver",
+    logger: true,
+    debug: true,
   });
-
+  await transporter.verify();
   // Email data
   const mailOptions = {
     from: "ChainAI",
     to: email, // Replace with the recipient's email address
+    //     MIME-Version: 1.0,
+    // Content-Type: text/html; charset=utf-8,
+    headers: {
+      "X-Priority": "1", // High priority
+      "X-Mailer": "ChainAI Mailer",
+      "List-Unsubscribe": "<https://joinchainai.com/unsubscribe>",
+      "MIME-Version": "1.0",
+      "Content-Type": "text/html; charset=UTF-8",
+      // "X-Auto-Response-Suppress": "OOF, AutoReply",
+      // "Content-Transfer-Encoding": "quoted-printable",
+      // Precedence: "bulk",
+    },
+
     subject: "🔐 Your ChainAI Verification Code Inside – Let’s Get Started!",
     html: `
     <!DOCTYPE html>
@@ -137,7 +153,7 @@ exports.sendEmail = async (email, code) => {
     if (error) {
       logger.error("Error sending email: ", error);
     } else {
-      logger.info("Email sent: " + info.response);
+      logger.info("Email sent: ", info);
     }
   });
 };
@@ -159,6 +175,16 @@ exports.sendReminderEmail = async (Reminder) => {
   const mailOptions = {
     from: "ChainAI",
     to: Reminder.user.email, // Replace with the recipient's email address
+    // headers: {
+    //   "X-Priority": "1", // High priority
+    //   "X-Mailer": "ChainAI Mailer",
+    //   "X-Auto-Response-Suppress": "OOF, AutoReply",
+    //   Precedence: "bulk",
+    //   "List-Unsubscribe": "<https://joinchainai.com/unsubscribe>",
+    //   "MIME-Version": "1.0",
+    //   "Content-Type": "text/html; charset=UTF-8",
+    //   "Content-Transfer-Encoding": "quoted-printable",
+    // },
     subject: "🔔 Reminder from ChainAI",
     html: `
   <!DOCTYPE html>

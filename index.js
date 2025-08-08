@@ -26,7 +26,7 @@ const config = {
 
 admin.initializeApp({
   credential: admin.credential.cert(config),
-  storageBucket: "gs://godai-507ae.appspot.com",
+  storageBucket: "gs://chainai-7a0fd.appspot.com",
 });
 
 // const allowedOrigins = [

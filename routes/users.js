@@ -19,7 +19,9 @@ const PointsHistory = require("../models/pointsHistory");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 const communityJoin = require("../models/communityJoin");
-const {playGame} = require("../controllers/gameController");
+const { playGame } = require("../controllers/gameController");
+const admin = require("../middleware/admin");
+
 router.post("/play-game", auth, playGame);
 router.get("/me", auth, async (req, res) => {
   try {
@@ -407,7 +409,7 @@ router.post("/check-email", async (req, res) => {
   res.send({ success: true, message: "Email doesn't existed" });
 });
 
-router.put("/update-user", auth, async (req, res) => {
+router.put("/update-user", [auth, admin], async (req, res) => {
   try {
     const {
       name,
@@ -421,6 +423,8 @@ router.put("/update-user", auth, async (req, res) => {
       tone,
       email,
       ponts,
+      token,
+      fcmToken,
       pointsBalance,
       pointsEarned,
     } = req.body;
@@ -438,9 +442,11 @@ router.put("/update-user", auth, async (req, res) => {
         phone,
         tone,
         ponts,
+        fcmtoken: fcmToken,
         pointsBalance,
         pointsEarned,
         email,
+        token,
       }).filter(([key, value]) => value !== undefined)
     );
     if (Object.keys(updateFields).length === 0) {
