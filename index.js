@@ -54,8 +54,9 @@ admin.initializeApp({
 
 app.use(
   cors({
-    origin: "*", // allows all origins
-    optionsSuccessStatus: 200,
+    origin: "*", // Update for production security
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: false,
   })
 );
 require("./startup/config")();
