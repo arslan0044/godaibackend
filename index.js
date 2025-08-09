@@ -52,12 +52,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(
-  cors({
-    origin: "*", // allows all origins
-    optionsSuccessStatus: 200,
-  })
-);
+// app.use(
+//   cors({
+//     origin: "*", // allows all origins
+//     optionsSuccessStatus: 200,
+//   })
+// );
 require("./startup/config")();
 require("./startup/logging")();
 require("./startup/routes")(app);
