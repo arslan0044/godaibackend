@@ -16,11 +16,13 @@ const { generateCode } = require("../controllers/generateCode");
 const router = express.Router();
 const ActivityPoints = require("../models/activityPoints");
 const PointsHistory = require("../models/pointsHistory");
+const History = require("../models/history");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
 const communityJoin = require("../models/communityJoin");
 const { playGame } = require("../controllers/gameController");
 const admin = require("../middleware/admin");
+const mongooes = require("mongoose");
 
 router.post("/play-game", auth, playGame);
 router.get("/me", auth, async (req, res) => {
@@ -527,5 +529,150 @@ router.put("/premium", auth, async (req, res) => {
 
   res.send({ success: true, message: "User premium status updated", user });
 });
+router.get("/activity-history", auth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const {
+      action,
+      isDeleted,
+      startDate,
+      endDate,
+      page = 1,
+      limit = 20,
+    } = req.query;
 
+    // Validate pagination parameters
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(limitNumber) ||
+      limitNumber < 1
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid pagination parameters",
+      });
+    }
+
+    // Build the query filter
+    const filter = { userId: new mongooes.Types.ObjectId(userId) };
+
+    if (action) filter.action = action;
+    if (isDeleted !== undefined) filter.isDeleted = isDeleted === "true";
+
+    // Date range filtering
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Get total count for pagination metadata
+    const total = await History.countDocuments(filter);
+
+    // Execute query with pagination
+    const history = await History.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber)
+      .lean();
+
+    if (!history.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching activity history found.",
+        data: [],
+        total: 0,
+        page: pageNumber,
+        totalPages: 0,
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: history,
+      total,
+      page: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+    });
+  } catch (error) {
+    console.error("Error fetching activity history:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+router.post("/activity-history", auth, async (req, res) => {
+  try {
+    const { action, description } = req.body;
+    const userId = req.user._id;
+
+    // Basic validation
+    if (!action || !description) {
+      return res.status(400).json({
+        success: false,
+        message: "Action and description are required",
+      });
+    }
+
+    const newActivity = await History.create({
+      userId,
+      action,
+      description,
+      isDeleted: false,
+      createdAt: new Date(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: newActivity,
+    });
+  } catch (error) {
+    console.error("Error creating activity history:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
+router.delete("/activity-history/:id", auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isDeleted } = req.body;
+    const userId = req.user._id;
+    // updateFields.updatedAt = new Date();
+    const updateFields = { isDeleted, updatedAt: new Date() };
+    const activity = await History.findOneAndUpdate(
+      { _id: id, userId },
+      updateFields,
+      { new: true }
+    );
+    if (!activity) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Activity history not found or you do not have permission to delete it.",
+      });
+    }
+    return res.json({
+      success: true,
+      message: "Activity history updated successfully",
+      data: activity,
+    });
+  } catch (error) {
+    console.error("Error updating activity history:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
 module.exports = router;
