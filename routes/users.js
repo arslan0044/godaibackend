@@ -411,7 +411,69 @@ router.post("/check-email", async (req, res) => {
   res.send({ success: true, message: "Email doesn't existed" });
 });
 
-router.put("/update-user", [auth, admin], async (req, res) => {
+router.put("/update-user", auth, async (req, res) => {
+  try {
+    const {
+      name,
+      profilePicture,
+      goal,
+      bio,
+      interest,
+      gender,
+      voice,
+      phone,
+      tone,
+      email,
+      ponts,
+      token,
+      fcmToken,
+      pointsBalance,
+      pointsEarned,
+    } = req.body;
+
+    // Create an object to store the fields to be updated
+    const updateFields = Object.fromEntries(
+      Object.entries({
+        name,
+        profilePicture,
+        goal,
+        bio,
+        interest,
+        gender,
+        voice,
+        phone,
+        tone,
+        ponts,
+        fcmtoken: fcmToken,
+        pointsBalance,
+        pointsEarned,
+        email,
+        token,
+      }).filter(([key, value]) => value !== undefined)
+    );
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No valid fields provided for update.",
+      });
+    }
+    const user = await User.findByIdAndUpdate(req.user._id, updateFields, {
+      new: true,
+    });
+
+    if (!user)
+      return res.status(404).send({
+        success: false,
+        message: "The User with the given ID was not found.",
+      });
+
+    res.send({ success: true, message: "User updated successfully", user });
+  } catch (error) {
+    // console.log("Error updating user:", error);
+    res.status(500).send({ success: false, message: "Internal server error" });
+  }
+});
+router.put("/admin/update-user", [auth, admin], async (req, res) => {
   try {
     const {
       name,
