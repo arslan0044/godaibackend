@@ -257,13 +257,13 @@ router.post("/signup", async (req, res) => {
 
   const lowerCaseEmail = String(email).trim().toLocaleLowerCase();
 
-  const verificationRecord = await TempUser.findOne({ email: lowerCaseEmail });
+  // const verificationRecord = await TempUser.findOne({ email: lowerCaseEmail });
 
-  if (verificationRecord) {
-    return res
-      .status(200)
-      .json({ success: false, message: "Verification is not completed" });
-  }
+  // if (verificationRecord) {
+  //   return res
+  //     .status(200)
+  //     .json({ success: false, message: "Verification is not completed" });
+  // }
 
   const user = await User.findOne({ email: lowerCaseEmail });
 

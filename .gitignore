@@ -216,3 +216,5 @@ $RECYCLE.BIN/
 .DS_Store
 
 *.test.js
+
+*.txt
