@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   tone: String,
   bio: String,
   interest: String,
+  
   email: {
     type: String,
     required: false,

@@ -22,6 +22,7 @@ const activityPointsSchema = new mongoose.Schema({
       "webxv_join",
       "discord_join",
       "token_purchase",
+      "reminder_price",
     ],
   },
   points: {

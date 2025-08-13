@@ -489,9 +489,15 @@ router.put("/admin/update-user", [auth, admin], async (req, res) => {
       ponts,
       token,
       fcmToken,
+      password,
       pointsBalance,
       pointsEarned,
     } = req.body;
+    let hashedPassword = "";
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(password, salt);
+    }
 
     // Create an object to store the fields to be updated
     const updateFields = Object.fromEntries(
@@ -511,6 +517,7 @@ router.put("/admin/update-user", [auth, admin], async (req, res) => {
         pointsEarned,
         email,
         token,
+        password: hashedPassword,
       }).filter(([key, value]) => value !== undefined)
     );
     if (Object.keys(updateFields).length === 0) {
