@@ -747,7 +747,7 @@ router.delete("/activity-history/:id", auth, async (req, res) => {
     });
   }
 });
-router.post("", auth, async (req, res) => {
+router.post("/purcahed", auth, async (req, res) => {
   const user = await User.findById(req.user._id);
   const { name, paymentId, timePeriod, price } = req.body;
   try {
