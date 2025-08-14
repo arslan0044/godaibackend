@@ -16,6 +16,7 @@ const { generateCode } = require("../controllers/generateCode");
 const router = express.Router();
 const ActivityPoints = require("../models/activityPoints");
 const PointsHistory = require("../models/pointsHistory");
+const Package = require("../models/packages");
 const History = require("../models/history");
 const { TempUser } = require("../models/TempUser");
 const { generateReferralCode } = require("../utils/referralUtils");
@@ -746,4 +747,34 @@ router.delete("/activity-history/:id", auth, async (req, res) => {
     });
   }
 });
+router.post("", auth, async (req, res) => {
+  const user = await User.findById(req.user._id);
+  const { name, paymentId, timePeriod, price } = req.body;
+  try {
+    const newPackage = new Package({
+      name,
+      paymentId,
+      timePeriod,
+      price,
+    });
+    await newPackage.save();
+    user.PurchedPackages.push(newPackage._id);
+    user.premium = true; // Set user as premium
+    user.temp = true; 
+    await user.save();
+    res.status(201).json({
+      success: true,
+      message: "Package created and added to user successfully",
+      package: newPackage,
+    });
+  } catch (error) {
+    console.error("Error creating package:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
+
 module.exports = router;

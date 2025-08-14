@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
   tone: String,
   bio: String,
   interest: String,
-  
+
   email: {
     type: String,
     required: false,
@@ -176,6 +176,13 @@ const userSchema = new mongoose.Schema({
     pointsUpdates: { type: Boolean, default: true },
     rewardOffers: { type: Boolean, default: true },
   },
+  temp:Boolean,
+  PurchedPackages: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Package",
+    },
+  ],
 });
 
 function generateAuthToken(_id, type) {

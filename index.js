@@ -369,29 +369,65 @@ cron.schedule("* * * * *", async () => {
   try {
     const reminders = await Reminder.find({
       reminderAt: { $lte: new Date() },
-    }).populate("user");
+    }).populate({
+      path: "user",
+      populate: { path: "PurchasedPackages" } // Ensure packages are populated
+    });
+
     console.log("Reminders found:", reminders.length);
+
     reminders.forEach(async (reminder) => {
+      // 🔹 NEW: Check user's purchased packages for expiry
+      if (Array.isArray(reminder.user?.PurchasedPackages)) {
+        reminder.user.PurchasedPackages.forEach(async (pkg) => {
+          if (!pkg?.createdAt || !pkg?.timePeriod) return;
+
+          const expiryDate = moment(pkg.createdAt).add(pkg.timePeriod, "days");
+          if (moment().isAfter(expiryDate)) {
+            console.log(`Package expired for user ${reminder.user._id}`);
+
+            // Send package expiry email
+            await sendPackageExpiryEmail(reminder.user, pkg);
+
+            // Send package expiry push notification
+            try {
+              const message = {
+                token: reminder.user.fcmtoken,
+                notification: {
+                  title: "Package Expired",
+                  body: `Your package "${pkg.name || 'Subscription'}" has expired.`,
+                },
+                android: { notification: { sound: "default" } },
+                apns: { payload: { aps: { sound: "default" } } },
+              };
+              await admin.messaging().send(message);
+            } catch (pushErr) {
+              console.error("Push notification error:", pushErr);
+            }
+          }
+        });
+      }
+
+      // 🔹 Existing reminder logic untouched
       if (reminder.remind == "none") {
         await Reminder.findByIdAndDelete(reminder._id);
       } else {
         const nextDay = moment(reminder.reminderAt).add(1, "day").toISOString();
-        const nextWeek = moment(reminder.reminderAt)
-          .add(1, "week")
-          .toISOString();
+        const nextWeek = moment(reminder.reminderAt).add(1, "week").toISOString();
         await Reminder.findByIdAndUpdate(reminder._id, {
           $set: { reminderAt: reminder.remind == "daily" ? nextDay : nextWeek },
         });
       }
+
       console.log("Reminder found each:", reminder);
       await sendReminderEmail(reminder);
+
       const type = toTitleCase(reminder.type);
       console.log(type);
       try {
         const title = `${type} Reminder: ${reminder.title}`;
-
         const message = {
-          token: reminder.user.fcmtoken, // replace with the user's device token
+          token: reminder.user.fcmtoken,
           notification: {
             title: title,
             body:
@@ -401,18 +437,8 @@ cron.schedule("* * * * *", async () => {
                 ? "Quantity" + reminder.quantity
                 : "",
           },
-          android: {
-            notification: {
-              sound: "default",
-            },
-          },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default",
-              },
-            },
-          },
+          android: { notification: { sound: "default" } },
+          apns: { payload: { aps: { sound: "default" } } },
         };
         await admin.messaging().send(message);
       } catch (error) {}
@@ -421,6 +447,7 @@ cron.schedule("* * * * *", async () => {
     console.error("❌ Cron Job Error:", err);
   }
 });
+
 
 function toTitleCase(str) {
   return str
