@@ -748,7 +748,7 @@ router.delete("/activity-history/:id", auth, async (req, res) => {
   }
 });
 router.post("/purcahed", auth, async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).populate("PurchedPackages");
   const { name, paymentId, timePeriod, price } = req.body;
   try {
     const newPackage = new Package({
@@ -765,7 +765,8 @@ router.post("/purcahed", auth, async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Package created and added to user successfully",
-      package: newPackage,
+      // package: newPackage,
+      user
     });
   } catch (error) {
     console.error("Error creating package:", error);

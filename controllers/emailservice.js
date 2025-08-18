@@ -3,6 +3,13 @@ const logger = require("../startup/logger"); // Adjust the path as needed
 
 exports.sendEmail = async (email, code) => {
   // Create a Nodemailer transporter object
+  //  const transporter = nodemailer.createTransport({
+  //         service: 'Gmail',
+  //         auth: {
+  //              user: 'danishgoheer17@gmail.com',
+  //              pass: 'zzmftuogtusnnriu',
+  //         },
+  //    });
   const transporter = nodemailer.createTransport({
     host: "mail.joinchainai.com",
     port: 587,
@@ -11,30 +18,30 @@ exports.sendEmail = async (email, code) => {
       user: "noreply@joinchainai.com",
       pass: "ChainAi@2025",
     },
-    tls: {
-      rejectUnauthorized: false, // Optional: Disables certificate validation
-    },
-    name: "chainai-mailserver",
-    logger: true,
-    debug: true,
+    // tls: {
+    //   rejectUnauthorized: false, // Optional: Disables certificate validation
+    // },
+    // name: "chainai-mailserver",
+    // logger: true,
+    // debug: true,
   });
-  await transporter.verify();
+  // await transporter.verify();
   // Email data
   const mailOptions = {
     from: "ChainAI",
     to: email, // Replace with the recipient's email address
     //     MIME-Version: 1.0,
     // Content-Type: text/html; charset=utf-8,
-    headers: {
-      "X-Priority": "1", // High priority
-      "X-Mailer": "ChainAI Mailer",
-      "List-Unsubscribe": "<https://joinchainai.com/unsubscribe>",
-      "MIME-Version": "1.0",
-      "Content-Type": "text/html; charset=UTF-8",
-      // "X-Auto-Response-Suppress": "OOF, AutoReply",
-      // "Content-Transfer-Encoding": "quoted-printable",
-      // Precedence: "bulk",
-    },
+    // headers: {
+    //   "X-Priority": "1", // High priority
+    //   "X-Mailer": "ChainAI Mailer",
+    //   "List-Unsubscribe": "<https://joinchainai.com/unsubscribe>",
+    //   "MIME-Version": "1.0",
+    //   "Content-Type": "text/html; charset=UTF-8",
+    //   // "X-Auto-Response-Suppress": "OOF, AutoReply",
+    //   // "Content-Transfer-Encoding": "quoted-printable",
+    //   // Precedence: "bulk",
+    // },
 
     subject: "🔐 Your ChainAI Verification Code Inside – Let’s Get Started!",
     html: `
