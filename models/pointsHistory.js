@@ -41,6 +41,7 @@ const pointsHistorySchema = new mongoose.Schema(
         "telegram_join",
         "webxv_join",
         "discord_join",
+        "watch_trailer",
       ],
     },
     points: {
