@@ -33,18 +33,6 @@ module.exports = function (app) {
       faq: faq,
     });
   });
-  app.get("/api/admin/purchased-coin", getPurchasedTokens);
-  app.use("/api/auth", auth);
-  app.use("/api/users", users);
-  app.use("/api/reminder", authMiddleware, blogRoute);
-  app.use("/api/image", uploadImages);
-  app.use("/api/spotify", spotify);
-  app.use("/api/invite", invite);
-  app.use("/api/points", points);
-  app.use("/api/admin", [authMiddleware, adminAuthMiddleware], admin);
-  app.use("/api/pages", pageRoutes);
-  app.use("/api/notification", authMiddleware, notificationRoute);
-  // Read All Quests
   app.get("/api/admin/quests", async (req, res) => {
     try {
       const quests = await Quest.find();
@@ -64,5 +52,18 @@ module.exports = function (app) {
       res.status(500).json({ error: err.message });
     }
   });
+  app.get("/api/admin/purchased-coin", getPurchasedTokens);
+  app.use("/api/auth", auth);
+  app.use("/api/users", users);
+  app.use("/api/reminder", authMiddleware, blogRoute);
+  app.use("/api/image", uploadImages);
+  app.use("/api/spotify", spotify);
+  app.use("/api/invite", invite);
+  app.use("/api/points", points);
+  app.use("/api/admin", [authMiddleware, adminAuthMiddleware], admin);
+  app.use("/api/pages", pageRoutes);
+  app.use("/api/notification", authMiddleware, notificationRoute);
+  // Read All Quests
+  
   app.use(error);
 };

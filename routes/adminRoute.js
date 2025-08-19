@@ -422,6 +422,7 @@ router.delete("/faq/:id", async (req, res) => {
 router.post("/purchased-coin", createPurchasedToken);
 router.put("/purchased-coin/:id", updatePurchasedToken);
 router.delete("/purchased-coin/:id", deletePurchasedToken);
+
 router.post("/quest", async (req, res) => {
   try {
     const quest = new Quest(req.body);
