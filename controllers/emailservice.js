@@ -37,7 +37,7 @@ exports.sendEmail = async (email, code) => {
   await transporter.verify();
   // Email data
   const mailOptions = {
-    from: "ChainAI",
+    from: '"ChainAI" <noreply@joinchainai.com>',
     to: email, // Replace with the recipient's email address
     //     MIME-Version: 1.0,
     // Content-Type: text/html; charset=utf-8,
