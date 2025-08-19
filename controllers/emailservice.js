@@ -12,7 +12,7 @@ exports.sendEmail = async (email, code) => {
   //    });
   const transporter = nodemailer.createTransport({
     host: "mail.joinchainai.com",
-    port: 587,
+    port: 465,
     secure: true, // Use TLS
     auth: {
       user: "noreply@joinchainai.com",
