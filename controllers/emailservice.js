@@ -13,14 +13,14 @@ exports.sendEmail = async (email, code) => {
   const transporter = nodemailer.createTransport({
     host: "mail.joinchainai.com",
     port: 587,
-    // secure: true, // Use TLS
+    secure: false, // Use TLS
     auth: {
       user: "noreply@joinchainai.com",
       pass: "ChainAi@2025",
     },
-    tls: {
-      rejectUnauthorized: false, // Optional: Disables certificate validation
-    },
+    // tls: {
+    //   rejectUnauthorized: false, // Optional: Disables certificate validation
+    // },
     // name: "chainai-mailserver",
     logger: true,
     debug: true,
