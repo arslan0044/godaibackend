@@ -139,14 +139,14 @@ router.post("/:type?", async (req, res) => {
       success: false,
       message: `User has been ${user.status}. Contact admin for further support.`,
     });
-  // if (user.verify == false) {
-  //   return res.status(400).send({
-  //     success: false,
-  //     email: user.email,
-  //     isVerified: user.verify,
-  //     message: `User is not verified. Please verify your email to login.`,
-  //   });
-  // }
+  if (user.verify == false) {
+    return res.status(400).send({
+      success: false,
+      email: user.email,
+      isVerified: user.verify,
+      message: `User is not verified. Please verify your email to login.`,
+    });
+  }
   user.fcmtoken = fcmtoken;
   await user.save();
 
