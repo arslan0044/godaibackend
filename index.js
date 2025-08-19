@@ -371,15 +371,23 @@ cron.schedule("* * * * *", async () => {
       reminderAt: { $lte: new Date() },
     }).populate({
       path: "user",
-      populate: { path: "PurchasedPackages" } // Ensure packages are populated
+      populate: { path: "PurchedPackages" }, // Ensure packages are populated
     });
 
     console.log("Reminders found:", reminders.length);
 
     reminders.forEach(async (reminder) => {
+      console.log("Processing reminder:", reminder.user?._id);
+      if (
+        reminder.user?.PurchedPackages === null ||
+        reminder.user?.PurchedPackages === undefined ||
+        reminder.user?.PurchedPackages.length === 0
+      ) {
+        console.log(`No purchased packages for user ${reminder.user._id}`);
+      }
       // 🔹 NEW: Check user's purchased packages for expiry
-      if (Array.isArray(reminder.user?.PurchasedPackages)) {
-        reminder.user.PurchasedPackages.forEach(async (pkg) => {
+      if (Array.isArray(reminder.user?.PurchedPackages)) {
+        reminder.user.PurchedPackages.forEach(async (pkg) => {
           if (!pkg?.createdAt || !pkg?.timePeriod) return;
 
           const expiryDate = moment(pkg.createdAt).add(pkg.timePeriod, "days");
@@ -395,7 +403,9 @@ cron.schedule("* * * * *", async () => {
                 token: reminder.user.fcmtoken,
                 notification: {
                   title: "Package Expired",
-                  body: `Your package "${pkg.name || 'Subscription'}" has expired.`,
+                  body: `Your package "${
+                    pkg.name || "Subscription"
+                  }" has expired.`,
                 },
                 android: { notification: { sound: "default" } },
                 apns: { payload: { aps: { sound: "default" } } },
@@ -413,7 +423,9 @@ cron.schedule("* * * * *", async () => {
         await Reminder.findByIdAndDelete(reminder._id);
       } else {
         const nextDay = moment(reminder.reminderAt).add(1, "day").toISOString();
-        const nextWeek = moment(reminder.reminderAt).add(1, "week").toISOString();
+        const nextWeek = moment(reminder.reminderAt)
+          .add(1, "week")
+          .toISOString();
         await Reminder.findByIdAndUpdate(reminder._id, {
           $set: { reminderAt: reminder.remind == "daily" ? nextDay : nextWeek },
         });
@@ -447,7 +459,6 @@ cron.schedule("* * * * *", async () => {
     console.error("❌ Cron Job Error:", err);
   }
 });
-
 
 function toTitleCase(str) {
   return str

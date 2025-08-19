@@ -495,6 +495,7 @@ router.put("/admin/update-user", [auth, admin], async (req, res) => {
       pointsEarned,
     } = req.body;
     let hashedPassword;
+    console.log(password);
     if (password) {
       const salt = await bcrypt.genSalt(10);
       hashedPassword = await bcrypt.hash(password, salt);
@@ -760,13 +761,13 @@ router.post("/purcahed", auth, async (req, res) => {
     await newPackage.save();
     user.PurchedPackages.push(newPackage._id);
     user.premium = true; // Set user as premium
-    user.temp = true; 
+    user.temp = true;
     await user.save();
     res.status(201).json({
       success: true,
       message: "Package created and added to user successfully",
       // package: newPackage,
-      user
+      user,
     });
   } catch (error) {
     console.error("Error creating package:", error);

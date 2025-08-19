@@ -2,7 +2,12 @@ const express = require("express");
 const { User } = require("../models/user");
 const router = express.Router();
 const { Faq } = require("../models/Faq");
-const { createPurchasedToken, updatePurchasedToken, deletePurchasedToken } = require("../controllers/PurchasedTokenController");
+const bcrypt = require("bcryptjs");
+const {
+  createPurchasedToken,
+  updatePurchasedToken,
+  deletePurchasedToken,
+} = require("../controllers/PurchasedTokenController");
 /**
  * @route GET /api/admin/get-all-users
  * @description Get paginated list of users with filtering and sorting
@@ -168,6 +173,24 @@ router.put("/user/:id", async (req, res) => {
     const userId = req.params.id;
     const updateData = req.body;
     const { status } = updateData;
+    const {
+      name,
+      profilePicture,
+      goal,
+      bio,
+      interest,
+      gender,
+      voice,
+      phone,
+      tone,
+      email,
+      ponts,
+      token,
+      fcmToken,
+      password,
+      pointsBalance,
+      pointsEarned,
+    } = updateData;
     if (
       status !== "online" &&
       status !== "deactivated" &&
@@ -179,7 +202,40 @@ router.put("/user/:id", async (req, res) => {
           "Invalid status value. Allowed values are 'online', 'deactivated', or 'deleted'.",
       });
     }
-
+    let hashedPassword;
+    console.log(password);
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(password, salt);
+      console.log("Hashed Password:", hashedPassword);
+    }
+    console.log("Hashed Password:", hashedPassword);
+    const updateFields = Object.fromEntries(
+      Object.entries({
+        name,
+        profilePicture,
+        goal,
+        bio,
+        interest,
+        gender,
+        voice,
+        phone,
+        tone,
+        ponts,
+        fcmtoken: fcmToken,
+        pointsBalance,
+        pointsEarned,
+        email,
+        token,
+        password: hashedPassword,
+      }).filter(([key, value]) => value !== undefined)
+    );
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "No valid fields provided for update.",
+      });
+    }
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
@@ -189,7 +245,7 @@ router.put("/user/:id", async (req, res) => {
       });
     }
     // Update user data
-    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+    const updatedUser = await User.findByIdAndUpdate(userId, updateFields, {
       new: true,
       runValidators: true,
     }).select("-password -__v -fcmtoken -socialMediaAccounts");
@@ -269,32 +325,31 @@ router.get("/", async (req, res) => {
   }
 });
 
- router.post("/faq", async (req, res) => {
-    try {
-      const { title, description } = req.body;
-      if (!title || !description) {
-        return res.status(400).json({
-          success: false,
-          message: "Title and description are required",
-        });
-      }
-      const newFaq = new Faq({ title, description });
-      await newFaq.save();
-      res.status(201).json({
-        success: true,
-        message: "FAQ created successfully",
-        faq: newFaq,
-      });
-    } catch (error) {
-      console.error("Error creating FAQ:", error);
-      res.status(500).json({
+router.post("/faq", async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    if (!title || !description) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to create FAQ",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        message: "Title and description are required",
       });
     }
-  });
+    const newFaq = new Faq({ title, description });
+    await newFaq.save();
+    res.status(201).json({
+      success: true,
+      message: "FAQ created successfully",
+      faq: newFaq,
+    });
+  } catch (error) {
+    console.error("Error creating FAQ:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create FAQ",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+});
 router.put("/faq/:id", async (req, res) => {
   try {
     const faqId = req.params.id;
