@@ -387,7 +387,7 @@ cron.schedule("* * * * *", async () => {
       }
       // 🔹 NEW: Check user's purchased packages for expiry
       if (Array.isArray(reminder.user?.PurchedPackages)) {
-        reminder.user.PurchedPackages.forEach(async (pkg) => {
+        reminder.user.PurchedPackages?.forEach(async (pkg) => {
           if (!pkg?.createdAt || !pkg?.timePeriod) return;
 
           const expiryDate = moment(pkg.createdAt).add(pkg.timePeriod, "days");
