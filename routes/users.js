@@ -24,7 +24,6 @@ const communityJoin = require("../models/communityJoin");
 const { playGame } = require("../controllers/gameController");
 const admin = require("../middleware/admin");
 const mongooes = require("mongoose");
-
 router.post("/play-game", auth, playGame);
 router.get("/me", auth, async (req, res) => {
   try {

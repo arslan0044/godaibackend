@@ -8,6 +8,8 @@ const {
   updatePurchasedToken,
   deletePurchasedToken,
 } = require("../controllers/PurchasedTokenController");
+const Quest = require("../models/quest");
+
 /**
  * @route GET /api/admin/get-all-users
  * @description Get paginated list of users with filtering and sorting
@@ -420,4 +422,41 @@ router.delete("/faq/:id", async (req, res) => {
 router.post("/purchased-coin", createPurchasedToken);
 router.put("/purchased-coin/:id", updatePurchasedToken);
 router.delete("/purchased-coin/:id", deletePurchasedToken);
+router.post("/quest", async (req, res) => {
+  try {
+    const quest = new Quest(req.body);
+    await quest.save();
+    res.status(201).json(quest);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+
+
+// Update Quest
+router.put("/quest/:id", async (req, res) => {
+  try {
+    const quest = await Quest.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!quest) return res.status(404).json({ error: "Quest not found" });
+    res.json(quest);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete Quest
+router.delete("/quest/:id", async (req, res) => {
+  try {
+    const quest = await Quest.findByIdAndDelete(req.params.id);
+    if (!quest) return res.status(404).json({ error: "Quest not found" });
+    res.json({ message: "Quest deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
