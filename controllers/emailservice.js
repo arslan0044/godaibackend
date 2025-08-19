@@ -10,21 +10,6 @@ exports.sendEmail = async (email, code) => {
   //              pass: 'zzmftuogtusnnriu',
   //         },
   //    });
-  // const transporter = nodemailer.createTransport({
-  //   host: "mail.joinchainai.com",
-  //   port: 587,
-  //   secure: false, // Use TLS
-  //   auth: {
-  //     user: "noreply@joinchainai.com",
-  //     pass: "ChainAi@2025",
-  //   },
-  //   // tls: {
-  //   //   rejectUnauthorized: false, // Optional: Disables certificate validation
-  //   // },
-  //   // name: "chainai-mailserver",
-  //   logger: true,
-  //   debug: true,
-  // });
   const transporter = nodemailer.createTransport({
     host: "mail.joinchainai.com",
     port: 587,
@@ -33,8 +18,23 @@ exports.sendEmail = async (email, code) => {
       user: "noreply@joinchainai.com",
       pass: "ChainAi@2025",
     },
+    tls: {
+      rejectUnauthorized: false, // Optional: Disables certificate validation
+    },
+    // name: "chainai-mailserver",
+    logger: true,
+    debug: true,
   });
-  // await transporter.verify();
+  // const transporter = nodemailer.createTransport({
+  //   host: "mail.joinchainai.com",
+  //   port: 587,
+  //   secure: true, // Use TLS
+  //   auth: {
+  //     user: "noreply@joinchainai.com",
+  //     pass: "ChainAi@2025",
+  //   },
+  // });
+  await transporter.verify();
   // Email data
   const mailOptions = {
     from: "ChainAI",
