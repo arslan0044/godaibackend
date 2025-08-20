@@ -24,6 +24,7 @@ const activityPointsSchema = new mongoose.Schema({
       "token_purchase",
       "reminder_price",
       "watch_trailer",
+      "quest"
     ],
   },
   points: {
