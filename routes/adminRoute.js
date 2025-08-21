@@ -229,6 +229,7 @@ router.put("/user/:id", async (req, res) => {
         pointsEarned,
         email,
         token,
+        status,
         password: hashedPassword,
       }).filter(([key, value]) => value !== undefined)
     );
@@ -432,8 +433,6 @@ router.post("/quest", async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-
-
 
 // Update Quest
 router.put("/quest/:id", async (req, res) => {

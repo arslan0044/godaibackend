@@ -17,6 +17,7 @@ const {
   getPurchasedTokens,
 } = require("../controllers/PurchasedTokenController");
 const Quest = require("../models/quest");
+const OpenAI = require("openai");
 
 module.exports = function (app) {
   app.use(express.json());
@@ -41,7 +42,32 @@ module.exports = function (app) {
       res.status(500).json({ error: err.message });
     }
   });
+  app.post("/api/chatgpt", async (req, res) => {
+    try {
+      const { message } = await req.body;
 
+      const client = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const completion = await client.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a helpful assistant. Today is ${new Date().toDateString()}.`,
+          },
+          { role: "user", content: message },
+        ],
+      });
+
+      res.json({
+        reply: completion.choices[0].message.content,
+      });
+    } catch (error) {
+      res.json(error);
+    }
+  });
   // Read Single Quest
   app.get("/api/admin/quest/:id", async (req, res) => {
     try {
@@ -64,6 +90,6 @@ module.exports = function (app) {
   app.use("/api/pages", pageRoutes);
   app.use("/api/notification", authMiddleware, notificationRoute);
   // Read All Quests
-  
+
   app.use(error);
 };
