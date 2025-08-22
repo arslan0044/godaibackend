@@ -10,7 +10,11 @@ const userSchema = new mongoose.Schema({
     maxlength: 1024,
   },
   devicerid: String,
-  phone: String,
+  phone: {
+    type: String,
+    // lank:true,
+    default: null,
+  },
   voice: String,
   tone: String,
   bio: String,
@@ -176,7 +180,7 @@ const userSchema = new mongoose.Schema({
     pointsUpdates: { type: Boolean, default: true },
     rewardOffers: { type: Boolean, default: true },
   },
-  temp:Boolean,
+  temp: Boolean,
   PurchedPackages: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -202,7 +206,7 @@ const User = mongoose.model("User", userSchema);
 function validateUser(user) {
   const commonSchema = {
     name: Joi.string().min(2).max(50).required(),
-    phone: Joi.string().min(2).max(50).optional(),
+    phone: Joi.string().allow("").optional(),
     password: Joi.string().min(5).max(255).required(),
     email: Joi.string().min(5).max(255).email(),
     voice: Joi.string().min(0).max(1024).optional(),
@@ -233,7 +237,7 @@ function passwordApiBodyValidate(body) {
 
 function phoneApiBodyValidate(body) {
   const schema = Joi.object({
-    phone: Joi.string().min(4).max(50).required(),
+    phone: Joi.string().min(4).max(50).optional(),
   });
 
   return schema.validate(body);

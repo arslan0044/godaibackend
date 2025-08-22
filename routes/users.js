@@ -237,6 +237,7 @@ router.post("/verify-otp/registration", async (req, res) => {
 
 router.post("/signup", async (req, res) => {
   const { error } = validate(req.body);
+  console.log(error);
   if (error)
     return res
       .status(400)
