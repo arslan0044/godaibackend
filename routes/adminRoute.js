@@ -193,6 +193,7 @@ router.put("/user/:id", async (req, res) => {
       premium,
       pointsBalance,
       pointsEarned,
+      verify,
     } = updateData;
     if (
       status !== "online" &&
@@ -233,6 +234,7 @@ router.put("/user/:id", async (req, res) => {
         token,
         status,
         password: hashedPassword,
+        verify,
       }).filter(([key, value]) => value !== undefined)
     );
     if (Object.keys(updateFields).length === 0) {

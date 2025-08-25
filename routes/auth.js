@@ -7,7 +7,8 @@ const {
 } = require("../models/user");
 const express = require("express");
 const router = express.Router();
-const { generateRandomString } = require("../controllers/generateCode");
+// const { generateRandomString } = require("../controllers/generateCode");
+const { generateReferralCode } = require("../utils/referralUtils");
 
 function uid() {
   var result = "";
@@ -76,7 +77,7 @@ router.post("/:type?", async (req, res) => {
         login_type: "social-login",
         fcmtoken,
       });
-
+      newUser.referralCode = generateReferralCode(newUser._id);
       await newUser.save();
 
       const token = generateAuthToken(newUser._id, newUser.type);

@@ -7,8 +7,8 @@ const ActivityPoints = require("../models/activityPoints");
 
 const generateReferralLink = async (req, res) => {
   try {
-    const userId = req.user._id; // Assuming you're using authentication middleware
-
+    const userId = req.query.userId || req.user._id; // Assuming you're using authentication middleware
+    // console.log(userId);
     // Find user and check if they already have a referral code
     const user = await User.findById(userId);
     if (!user) {
