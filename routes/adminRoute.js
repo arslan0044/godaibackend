@@ -190,6 +190,7 @@ router.put("/user/:id", async (req, res) => {
       token,
       fcmToken,
       password,
+      premium,
       pointsBalance,
       pointsEarned,
     } = updateData;
@@ -218,6 +219,7 @@ router.put("/user/:id", async (req, res) => {
         profilePicture,
         goal,
         bio,
+        premium,
         interest,
         gender,
         voice,

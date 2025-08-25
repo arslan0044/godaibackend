@@ -749,7 +749,8 @@ router.delete("/activity-history/:id", auth, async (req, res) => {
   }
 });
 router.post("/purcahed", auth, async (req, res) => {
-  const user = await User.findById(req.user._id).populate("PurchedPackages");
+  const userId = req.body.userId || req.user._id;
+  const user = await User.findById(userId).populate("PurchedPackages");
   const { name, paymentId, timePeriod, price } = req.body;
   try {
     const newPackage = new Package({
