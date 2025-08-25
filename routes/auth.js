@@ -9,6 +9,8 @@ const express = require("express");
 const router = express.Router();
 // const { generateRandomString } = require("../controllers/generateCode");
 const { generateReferralCode } = require("../utils/referralUtils");
+const ActivityPoints = require("../models/activityPoints");
+const PointsHistory = require("../models/pointsHistory");
 
 function uid() {
   var result = "";
@@ -65,7 +67,7 @@ router.post("/admin", async (req, res) => {
 
 router.post("/:type?", async (req, res) => {
   if (req.params.type == "social-login") {
-    const { email, name, fcmtoken } = req.body;
+    const { email, name, fcmtoken, referralCode } = req.body;
     const updatEmail = String(email).trim().toLocaleLowerCase();
 
     const user = await User.findOne({ email: updatEmail });
@@ -78,6 +80,58 @@ router.post("/:type?", async (req, res) => {
         fcmtoken,
       });
       newUser.referralCode = generateReferralCode(newUser._id);
+      // Referral code handling
+      if (referralCode) {
+        try {
+          // 1. Find referrer by referral code
+          const referrer = await User.findOne({ referralCode });
+
+          if (!referrer) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid referral code",
+            });
+          }
+
+          // 2. Get referral points configuration
+          const referralConfig = await ActivityPoints.findOne({
+            activityType: "referral_join",
+          });
+
+          if (!referralConfig) {
+            console.error("Referral points configuration not found");
+            // Continue without referral points if config missing
+          } else {
+            // 3. Update referrer's points
+            await User.findByIdAndUpdate(referrer._id, {
+              $inc: {
+                points: referralConfig.points,
+                pointsBalance: referralConfig.points,
+                pointsEarned: referralConfig.points,
+                referralCount: 1,
+                "referralStats.totalReferrals": 1,
+              },
+            });
+
+            // 4. Create points history record
+            await PointsHistory.create({
+              userId: referrer._id,
+              activityType: "referral_join",
+              points: referralConfig.points,
+              reference: {
+                referredUserId: newUser._id,
+                type: "user",
+              },
+            });
+
+            // 5. Set referredBy for new user
+            newUser.referredBy = referrer._id;
+          }
+        } catch (err) {
+          console.error("Error processing referral:", err);
+          // Continue with signup even if referral processing fails
+        }
+      }
       await newUser.save();
 
       const token = generateAuthToken(newUser._id, newUser.type);
