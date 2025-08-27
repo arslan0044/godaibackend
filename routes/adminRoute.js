@@ -245,6 +245,16 @@ router.put("/user/:id", async (req, res) => {
     }
     // Check if user exists
     const user = await User.findById(userId);
+    if (req.body.premium === false && user.temp == true) {
+      const description = `Your Premium Subscription has been Cancelled by the admin on ${date_time}.`;
+      await History.create({
+        userId,
+        action: "premium_update",
+        description,
+        isDeleted: false,
+        createdAt: new Date(),
+      });
+    }
     if (!user) {
       return res.status(404).json({
         success: false,
