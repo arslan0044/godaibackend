@@ -753,6 +753,11 @@ router.post("/purcahed", auth, async (req, res) => {
   const user = await User.findById(userId).populate("PurchedPackages");
   const { name, paymentId, timePeriod, price } = req.body;
   try {
+    const date_time = new Date().toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
     const newPackage = new Package({
       name,
       paymentId,
@@ -761,6 +766,22 @@ router.post("/purcahed", auth, async (req, res) => {
     });
     await newPackage.save();
     user.PurchedPackages.push(newPackage._id);
+    let description;
+    if (req.body.userId) {
+      description = `Your Premium Subscription has been successfully updated by the admin on ${date_time}.
+Continue enjoying all your premium benefits!`;
+    }else{
+     description = `You’ve successfully purchased a Premium Subscription worth ${price} on ${date_time}.
+Unlock and enjoy your exclusive benefits today! 🚀`
+    }
+
+    await History.create({
+      userId,
+      action: "premium_update",
+      description,
+      isDeleted: false,
+      createdAt: new Date(),
+    });
     user.premium = true; // Set user as premium
     user.temp = true;
     await user.save();
