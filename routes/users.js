@@ -777,7 +777,7 @@ Unlock and enjoy your exclusive benefits today! 🚀`
 
     await History.create({
       userId,
-      action: "premium_update",
+      action: "premium_purchase",
       description,
       isDeleted: false,
       createdAt: new Date(),
