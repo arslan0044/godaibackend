@@ -247,6 +247,11 @@ router.put("/user/:id", async (req, res) => {
     // Check if user exists
     const user = await User.findById(userId);
     if (req.body.premium === false && user.temp == true) {
+      const date_time = new Date().toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
       const description = `Your Premium Subscription has been Cancelled by the admin on ${date_time}.`;
       await History.create({
         userId,
