@@ -9,6 +9,7 @@ const {
   deletePurchasedToken,
 } = require("../controllers/PurchasedTokenController");
 const Quest = require("../models/quest");
+const History = require("../models/history");
 
 /**
  * @route GET /api/admin/get-all-users
