@@ -3,6 +3,7 @@ const { User } = require("../models/user");
 const router = express.Router();
 const { Faq } = require("../models/Faq");
 const bcrypt = require("bcryptjs");
+const Package = require("../models/packages");
 const {
   createPurchasedToken,
   updatePurchasedToken,
@@ -330,8 +331,11 @@ router.get("/", async (req, res) => {
       User.countDocuments(),
       User.countDocuments({ premium: true }),
     ]);
-
-    const totalearning = premiumUsers * 120;
+    let totalearning = 0;
+    const packages = await Package.find().lean().exec();
+    for (const pkg of packages) {
+      totalearning += pkg.price;
+    }
     const freeUsers = totalUsers - premiumUsers;
     return res.status(200).json({
       total_users: totalUsers,
